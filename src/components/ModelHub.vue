@@ -1,5 +1,5 @@
 <template>
-  <div class="model-hub-container">
+  <div class="model-hub-container not-content">
     <!-- 顶部操作控制栏 -->
     <div class="control-panel">
       <!-- 搜索栏 -->
@@ -487,16 +487,24 @@ input:checked + .slider:before {
 }
 
 .model-table {
-  width: 100%;
-  border-collapse: collapse;
+  display: table !important;
+  width: 100% !important;
+  min-width: 820px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
   font-size: 0.88rem;
   line-height: 1.5;
 }
 
+.model-table thead {
+  background: var(--sl-color-gray-6);
+}
+
 .model-table th {
   background: var(--sl-color-gray-6);
-  padding: 0.7rem 0.85rem;
+  padding: 0.75rem 0.85rem;
   font-weight: 600;
   color: var(--sl-color-gray-2);
   border-bottom: 2px solid var(--sl-color-gray-5);
@@ -504,6 +512,15 @@ input:checked + .slider:before {
   user-select: none;
   white-space: nowrap;
   vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.model-table thead tr th:first-child {
+  border-top-left-radius: 11px;
+}
+
+.model-table thead tr th:last-child {
+  border-top-right-radius: 11px;
 }
 
 .model-table th:hover {
@@ -519,34 +536,47 @@ input:checked + .slider:before {
   padding: 0.6rem 0.85rem;
   border-bottom: 1px solid var(--sl-color-gray-6);
   vertical-align: middle;
+  box-sizing: border-box;
 }
 
-/* 列宽分配与不换行控制 */
+/* 精确列宽分配 - 最后一列特性与说明自动铺满剩余整行空间 */
 .th-index, .td-index {
-  width: 40px;
+  width: 44px;
   text-align: center;
   color: var(--sl-color-gray-3);
   font-size: 0.78rem;
 }
 
 .th-short, .td-short {
-  width: 140px;
+  width: 145px;
   white-space: nowrap;
 }
 
 .th-id, .td-id {
+  width: 290px;
   white-space: nowrap;
 }
 
 .th-price, .td-price {
-  width: 120px;
+  width: 115px;
   white-space: nowrap;
   text-align: right;
   padding-right: 1.25rem;
 }
 
 .th-desc, .td-desc {
-  min-width: 220px;
+  width: auto;
+  min-width: 200px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.th-desc {
+  cursor: default !important;
+}
+
+.th-desc:hover {
+  color: var(--sl-color-gray-2) !important;
 }
 
 .clickable {
