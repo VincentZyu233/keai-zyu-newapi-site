@@ -61,8 +61,10 @@
               @click="toggleSort('short')"
               title="按短别名排序"
             >
-              推荐短别名
-              <span class="sort-icon">{{ getSortIndicator('short') }}</span>
+              <div class="th-inner">
+                <span>推荐短别名</span>
+                <span class="sort-icon">{{ getSortIndicator('short') }}</span>
+              </div>
             </th>
             <th
               class="th-id sortable"
@@ -70,8 +72,10 @@
               @click="toggleSort('id')"
               title="按模型完整 ID 排序"
             >
-              完整模型 ID
-              <span class="sort-icon">{{ getSortIndicator('id') }}</span>
+              <div class="th-inner">
+                <span>完整模型 ID</span>
+                <span class="sort-icon">{{ getSortIndicator('id') }}</span>
+              </div>
             </th>
             <th
               class="th-price sortable"
@@ -79,8 +83,11 @@
               @click="toggleSort('inPrice')"
               title="按输入费率排序"
             >
-              输入费率 (/1M)
-              <span class="sort-icon">{{ getSortIndicator('inPrice') }}</span>
+              <div class="th-inner price-header">
+                <span>输入费率</span>
+                <span class="unit-tag">(/1M)</span>
+                <span class="sort-icon">{{ getSortIndicator('inPrice') }}</span>
+              </div>
             </th>
             <th
               class="th-price sortable"
@@ -88,8 +95,11 @@
               @click="toggleSort('outPrice')"
               title="按输出费率排序"
             >
-              输出费率 (/1M)
-              <span class="sort-icon">{{ getSortIndicator('outPrice') }}</span>
+              <div class="th-inner price-header">
+                <span>输出费率</span>
+                <span class="unit-tag">(/1M)</span>
+                <span class="sort-icon">{{ getSortIndicator('outPrice') }}</span>
+              </div>
             </th>
             <th class="th-desc">特性与说明</th>
           </tr>
@@ -523,7 +533,7 @@ input:checked + .slider:before {
 .model-table {
   display: table !important;
   width: 100% !important;
-  min-width: 820px;
+  min-width: 960px;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
@@ -599,7 +609,32 @@ input:checked + .slider:before {
   box-sizing: border-box;
 }
 
-/* 精确列宽分配 - 最后一列特性与说明自动铺满剩余整行空间 */
+.th-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.price-header {
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.unit-tag {
+  font-size: 0.72rem;
+  font-family: var(--sl-font-mono);
+  color: var(--sl-color-gray-3);
+  font-weight: normal;
+  letter-spacing: -0.2px;
+}
+
+.model-table th.sortable.active .unit-tag {
+  color: var(--sl-color-accent);
+  opacity: 0.85;
+}
+
+/* 精确列宽分配 - 扩充费率与ID宽度彻底避免挤压，缩减最右侧描述宽度使其紧凑精致 */
 .th-index, .td-index {
   width: 44px;
   text-align: center;
@@ -613,22 +648,24 @@ input:checked + .slider:before {
 }
 
 .th-id, .td-id {
-  width: 290px;
+  width: 320px;
   white-space: nowrap;
 }
 
 .th-price, .td-price {
-  width: 115px;
+  width: 135px;
   white-space: nowrap;
   text-align: right;
-  padding-right: 1.25rem;
+  padding-right: 0.95rem;
 }
 
 .th-desc, .td-desc {
-  width: auto;
-  min-width: 200px;
+  width: 280px;
+  min-width: 220px;
+  max-width: 320px;
   white-space: normal;
   word-break: break-word;
+  line-height: 1.45;
 }
 
 .th-desc {
