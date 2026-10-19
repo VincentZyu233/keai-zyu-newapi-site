@@ -55,29 +55,49 @@
         <thead>
           <tr>
             <th class="th-index">#</th>
-            <th class="th-short" @click="toggleSort('short')">
+            <th
+              class="th-short sortable"
+              :class="{ active: sortKey === 'short' }"
+              @click="toggleSort('short')"
+              title="按短别名排序"
+            >
               推荐短别名
               <span class="sort-icon">{{ getSortIndicator('short') }}</span>
             </th>
-            <th class="th-id" @click="toggleSort('id')">
+            <th
+              class="th-id sortable"
+              :class="{ active: sortKey === 'id' }"
+              @click="toggleSort('id')"
+              title="按模型完整 ID 排序"
+            >
               完整模型 ID
               <span class="sort-icon">{{ getSortIndicator('id') }}</span>
             </th>
-            <th class="th-price" @click="toggleSort('inPrice')">
+            <th
+              class="th-price sortable"
+              :class="{ active: sortKey === 'inPrice' }"
+              @click="toggleSort('inPrice')"
+              title="按输入费率排序"
+            >
               输入费率 (/1M)
               <span class="sort-icon">{{ getSortIndicator('inPrice') }}</span>
             </th>
-            <th class="th-price" @click="toggleSort('outPrice')">
+            <th
+              class="th-price sortable"
+              :class="{ active: sortKey === 'outPrice' }"
+              @click="toggleSort('outPrice')"
+              title="按输出费率排序"
+            >
               输出费率 (/1M)
               <span class="sort-icon">{{ getSortIndicator('outPrice') }}</span>
             </th>
             <th class="th-desc">特性与说明</th>
           </tr>
         </thead>
-        <TransitionGroup name="flip-list" tag="tbody">
+        <tbody>
           <tr
             v-for="(item, index) in filteredModels"
-            :key="item.id"
+            :key="item.uid"
             class="model-row"
           >
             <td class="td-index">{{ index + 1 }}</td>
@@ -109,7 +129,7 @@
             </td>
             <td class="td-desc">{{ item.desc }}</td>
           </tr>
-        </TransitionGroup>
+        </tbody>
       </table>
 
       <!-- 搜索无结果占位 -->
@@ -192,7 +212,10 @@ const rawModels = [
   { short: "", id: "upstage/solar-pro", vendor: "其它", inPrice: 0.30, outPrice: 1.00, desc: "Solar Pro 深度长文本处理" },
   { short: "", id: "anthropic/claude-3-haiku-compatible", vendor: "其它", inPrice: 0.25, outPrice: 1.25, desc: "轻量快速响应兼容模型" },
   { short: "", id: "openai/gpt-4o-mini-compatible", vendor: "其它", inPrice: 0.15, outPrice: 0.60, desc: "多模态轻量级极速日常推理" }
-];
+].map((m, idx) => ({
+  ...m,
+  uid: `${m.short || 'none'}__${m.id}__${idx}`
+}));
 
 function getCategoryCount(cat) {
   if (cat === '全部') return rawModels.length;
@@ -211,13 +234,14 @@ function toggleSort(key) {
     sortAsc.value = !sortAsc.value;
   } else {
     sortKey.value = key;
+    // 短别名和 ID 默认升序 A-Z；价格默认升序（便宜优先）
     sortAsc.value = true;
   }
 }
 
 function getSortIndicator(key) {
   if (sortKey.value !== key) return '↕';
-  return sortAsc.value ? '↑' : '↓';
+  return sortAsc.value ? '▲' : '▼';
 }
 
 const filteredModels = computed(() => {
@@ -246,10 +270,20 @@ const filteredModels = computed(() => {
     } else if (sortKey.value === 'outPrice') {
       res = a.outPrice - b.outPrice;
     } else if (sortKey.value === 'short') {
+      // 优化别名排序：让有短别名的排在前面，无别名（-）归入末尾
+      if (a.short && !b.short) return sortAsc.value ? -1 : 1;
+      if (!a.short && b.short) return sortAsc.value ? 1 : -1;
+      if (!a.short && !b.short) return a.id.localeCompare(b.id);
       res = a.short.localeCompare(b.short);
     } else if (sortKey.value === 'id') {
       res = a.id.localeCompare(b.id);
     }
+
+    // 次级排序（Tie-breaker）：如果主条件相同，按模型 ID 保持绝对稳定排序
+    if (res === 0) {
+      res = a.id.localeCompare(b.id);
+    }
+
     return sortAsc.value ? res : -res;
   });
 
@@ -508,11 +542,26 @@ input:checked + .slider:before {
   font-weight: 600;
   color: var(--sl-color-gray-2);
   border-bottom: 2px solid var(--sl-color-gray-5);
-  cursor: pointer;
   user-select: none;
   white-space: nowrap;
   vertical-align: middle;
   box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.model-table th.sortable {
+  cursor: pointer;
+}
+
+.model-table th.sortable:hover {
+  background: rgba(244, 63, 94, 0.1);
+  color: var(--sl-color-accent);
+}
+
+.model-table th.sortable.active {
+  color: var(--sl-color-accent);
+  background: rgba(244, 63, 94, 0.12);
+  border-bottom-color: var(--sl-color-accent);
 }
 
 .model-table thead tr th:first-child {
@@ -523,13 +572,24 @@ input:checked + .slider:before {
   border-top-right-radius: 11px;
 }
 
-.model-table th:hover {
-  color: var(--sl-color-accent);
-}
-
 .sort-icon {
   margin-left: 0.25rem;
   font-size: 0.75rem;
+  display: inline-block;
+  opacity: 0.7;
+}
+
+.model-table th.sortable.active .sort-icon {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.model-row {
+  transition: background-color 0.15s ease;
+}
+
+.model-row:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .model-table td {
