@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/keai-zyu-newapi-site',
   integrations: [
     starlight({
-      title: 'VincentZyu AI 空间 自建newapi中转站捏',
+      title: 'keai-zyu-newapi-site',
       favicon: '/favicon.png',
       description: 'VincentZyu 的私人高可用 New API 专属网关文档与模型表格',
       logo: {
