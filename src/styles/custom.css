@@ -19,6 +19,9 @@
   --sl-color-gray-5: #343841;
   --sl-color-gray-6: #23262f;
   --sl-color-black: #17191e;
+
+  /* 扩宽默认正文宽度，避免表格窄小局促 */
+  --sl-content-width: 85rem;
 }
 
 :root[data-theme='light'] {
@@ -47,7 +50,38 @@ body, h1, h2, h3, h4, p, a, span, button, input {
   transform: rotate(360deg) scale(1.15);
 }
 
-/* 模型表格容器样式 */
-.model-hub-wrapper {
-  margin: 1.5rem 0;
+/* 大屏下优化右侧 On this page TOC 宽度与中间正文宽度 */
+@media (min-width: 72rem) {
+  :root {
+    --sl-sidebar-width: 15rem; /* 左侧栏适度收拢 */
+    --sl-content-width: 90rem; /* 正文最大宽度大幅度扩充 */
+  }
+
+  /* 右侧 On this page 缩窄，避免挤占宝贵的中央可视宽度 */
+  .right-sidebar-container {
+    width: 13rem !important;
+    min-width: 13rem !important;
+    max-width: 13rem !important;
+    flex-shrink: 0;
+  }
+
+  .right-sidebar {
+    width: 13rem !important;
+    padding-inline-end: 1rem;
+  }
+
+  /* 目录文字稍微紧凑一点，排版更精致 */
+  starlight-toc {
+    font-size: 0.82rem;
+  }
+
+  /* 中间主内容区扩充填满 */
+  :global([data-has-sidebar][data-has-toc]) .main-pane {
+    width: calc(100% - 13.5rem) !important;
+    max-width: none !important;
+  }
+
+  .main-pane .sl-container {
+    max-width: 100% !important;
+  }
 }
