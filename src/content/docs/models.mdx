@@ -19,9 +19,13 @@ import ModelHub from '../../components/ModelHub.vue';
 
 ### 📝 模型别名配置原则说明
 
-为了方便在终端命令行（如 Codex CLI / OpenCode）中直接使用简短好记的名字，网关已在渠道映射中内置了常用短别名：
-- `deepseek-chat` 自动指向最新的高速版本 `deepseek/deepseek-v4.1-flash`
-- `deepseek-reasoner` 自动指向满血推理模型 `deepseek/deepseek-v4-pro`
+为了方便在终端命令行（如 Codex CLI / OpenCode / Cline）中直接使用简短好记的名字，全站 50 款高可用模型已实现 100% 简短别名覆盖：
+- `deepseek-chat` / `deepseek-v4.1` 自动指向最新的高速版本 `deepseek/deepseek-v4.1-flash`
+- `dsv4f` 极速调用高吞吐版 `deepseek/deepseek-v4-flash-fast`；`dsv4fl` 调用多模态视觉版 `deepseek/deepseek-v4-flash-vision-exp`
+- `deepseek-reasoner` 自动指向满血推理模型 `deepseek/deepseek-v4-pro`；`deepseek-coder` 指向代码专精模型
 - `kimi` 自动指向 2.8T 参数、100 万长上下文旗舰 `moonshotai/Kimi-K3`
-- `qwen` / `qwen-max` 自动指向阿里通义旗舰 `Qwen/Qwen3.8-Max`
+- `qwen` / `qwen-max` 自动指向阿里通义旗舰 `Qwen/Qwen3.8-Max`；`qwen-omni` 指向多模态音频视觉版
+- `gpt-4o-mini` 自动兼容映射 `openai/gpt-4o-mini-compatible`
+- `claude-3-haiku` 自动兼容映射 `anthropic/claude-3-haiku-compatible`
+- `llama-70b` / `llama-405b` 快速调用开源旗舰 Meta Llama 系列
 - `grok` 自动指向 xAI 旗舰 `xai/grok-4.7`
