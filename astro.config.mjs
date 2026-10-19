@@ -8,6 +8,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'VincentZyu AI 空间',
+      favicon: '/favicon.png',
       description: 'VincentZyu 的私人高可用 New API 专属网关文档与模型表格',
       logo: {
         src: './src/assets/logo.png',
