@@ -8,7 +8,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'VincentZyu AI 空间',
-      description: 'VincentZyu 的私人高可用 New API 专属网关文档与模型全景大盘',
+      description: 'VincentZyu 的私人高可用 New API 专属网关文档与模型表格',
       logo: {
         src: './src/assets/logo.png',
         alt: 'VincentZyu Avatar'
@@ -29,7 +29,7 @@ export default defineConfig({
           slug: 'quickstart'
         },
         {
-          label: '📊 动态模型交互大盘',
+          label: '📊 动态模型表格',
           slug: 'models'
         },
         {

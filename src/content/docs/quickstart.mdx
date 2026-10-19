@@ -12,7 +12,7 @@ description: 标准 OpenAI 与 Claude Messages 兼容协议快速配置说明
 | 场景 | Base URL | 适用情况 |
 | :--- | :--- | :--- |
 | **公网穿透访问** | `http://bluerosion.vincentzyu233.cn:10101/v1` | 外出差旅、云服务器、跨网访问（全球可达） |
-| **家庭局域网极速直连** | `http://192.168.31.51:53000/v1` | 本地终端、局域网机器（超低延迟、不走 FRP 穿透带宽） |
+| **家庭局域网极速直连** | `http://192.168.x.x:53000/v1` | 本地终端、局域网机器（示例私网 IP，超低延迟） |
 
 ---
 
@@ -69,6 +69,6 @@ $env:ANTHROPIC_API_KEY="sk-your-new-api-token"
 
 在机器人后台的 Provider / 渠道设置中：
 - **Provider 类型**：选择 `OpenAI` 或 `兼容 OpenAI`
-- **API Base**：填入 `http://bluerosion.vincentzyu233.cn:10101/v1`（如果是内网部署的机器人，推荐填 `http://192.168.31.51:53000/v1`）
+- **API Base**：填入 `http://bluerosion.vincentzyu233.cn:10101/v1`（如果是内网部署的机器人，推荐填私网 IP 如 `http://192.168.x.x:53000/v1`）
 - **API Key**：填入你的令牌 `sk-xxxxxx`
 - **模型名称**：填入推荐别名（如 `deepseek-chat`、`kimi`、`qwen`）
