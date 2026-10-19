@@ -20,7 +20,7 @@ flowchart TD
         B["FRP 反向代理穿透服务器: 10101"]
     end
 
-    subgraph Host["家庭主机 (192.168.31.51)"]
+    subgraph Host["本地家庭/私有主机 (192.168.x.x)"]
         C["New API Gateway 微网关服务 (53000)"]
         D["New API 官方 Docker 容器 (53002)"]
         E["SQLite 持久化数据卷 (data/one-api.db)"]
@@ -40,7 +40,7 @@ flowchart TD
 
 ---
 
-## 📋 常用运维命令速查 (Linux Host: 192.168.31.51)
+## 📋 常用运维命令速查 (示范示例)
 
 ### 1. 服务状态与启停
 
@@ -60,10 +60,11 @@ systemctl status newapi-gateway
 
 ### 2. SQLite 数据库安全备份
 
-数据持久化挂载于 `/home/mac/SSoftwareFiles/aaa_from_git_aaa/github/new-api/data`：
+数据持久化挂载于宿主机目录（如 `/path/to/new-api/data`）：
 
 ```bash
-cd /home/mac/SSoftwareFiles/aaa_from_git_aaa/github/new-api/data
+# 进入挂载的数据目录
+cd /path/to/new-api/data
 
 # 快速备份当前数据库
 cp one-api.db one-api.db.bak_$(date +%Y%m%d_%H%M%S)

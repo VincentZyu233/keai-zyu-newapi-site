@@ -47,7 +47,7 @@ body, h1, h2, h3, h4, p, a, span, button, input {
   transform: rotate(360deg) scale(1.15);
 }
 
-/* 模型大盘容器样式 */
+/* 模型表格容器样式 */
 .model-hub-wrapper {
   margin: 1.5rem 0;
 }
