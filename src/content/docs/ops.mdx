@@ -1,0 +1,76 @@
+---
+title: 🛠️ 系统架构与运维备忘
+description: 本地部署架构拓扑与 New API 日常运维命令速查
+---
+
+## 🏛️ 网络与分发架构拓扑
+
+```mermaid
+flowchart TD
+    subgraph Clients["客户端接入层"]
+        A1["公网客户端 (Codex / OpenCode / 外部手机)"]
+        A2["局域网设备 (AstrBot / 家庭本地 Agent)"]
+    end
+
+    subgraph Frp["公网穿透层"]
+        B["FRP 反向代理穿透服务器: 10101"]
+    end
+
+    subgraph Host["家庭主机 (192.168.31.51)"]
+        C["New API Gateway 微网关服务 (53000)"]
+        D["New API 官方 Docker 容器 (53002)"]
+        E["SQLite 持久化数据卷 (data/one-api.db)"]
+    end
+
+    subgraph Upstream["上游服务"]
+        F["Command Code GOAT Plan 官方聚合 API"]
+    end
+
+    A1 -->|HTTP 穿透流量| B
+    B -->|转发至内网端口| C
+    A2 -->|局域网直连极速访问| C
+    C -->|反向代理至应用容器| D
+    D <-->|读写用户、渠道与日志| E
+    D -->|带 GOAT Key 向上分发| F
+```
+
+---
+
+## 📋 常用运维命令速查 (Linux Host: 192.168.31.51)
+
+### 1. 服务状态与启停
+
+```bash
+# 查看应用容器状态
+docker ps | grep new-api
+
+# 重启 New API 容器
+docker restart new-api
+
+# 查看应用实时日志
+docker logs -f new-api --tail 100
+
+# 查看前端网关守护进程状态
+systemctl status newapi-gateway
+```
+
+### 2. SQLite 数据库安全备份
+
+数据持久化挂载于 `/home/mac/SSoftwareFiles/aaa_from_git_aaa/github/new-api/data`：
+
+```bash
+cd /home/mac/SSoftwareFiles/aaa_from_git_aaa/github/new-api/data
+
+# 快速备份当前数据库
+cp one-api.db one-api.db.bak_$(date +%Y%m%d_%H%M%S)
+
+# 查看数据库完整性
+sqlite3 one-api.db "PRAGMA integrity_check;"
+```
+
+### 3. Docker 资源清理
+
+```bash
+# 清理废弃镜像与构建缓存
+docker system prune -f
+```

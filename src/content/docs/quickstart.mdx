@@ -1,0 +1,74 @@
+---
+title: 🚀 极简快速接入指南
+description: 标准 OpenAI 与 Claude Messages 兼容协议快速配置说明
+---
+
+本网关提供完全标准的 **OpenAI API** 与 **Claude Messages API** 兼容接口，无论任何开发工具或框架，只需配置好 **Base URL** 和 **API Key** 即可开箱即用。
+
+---
+
+## 🌐 核心端点地址
+
+| 场景 | Base URL | 适用情况 |
+| :--- | :--- | :--- |
+| **公网穿透访问** | `http://bluerosion.vincentzyu233.cn:10101/v1` | 外出差旅、云服务器、跨网访问（全球可达） |
+| **家庭局域网极速直连** | `http://192.168.31.51:53000/v1` | 本地终端、局域网机器（超低延迟、不走 FRP 穿透带宽） |
+
+---
+
+## 💻 快速接入配置范例
+
+### 1. 标准 OpenAI 兼容协议 (Python / Node.js)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://bluerosion.vincentzyu233.cn:10101/v1",
+    api_key="sk-your-new-api-token"
+)
+
+response = client.chat.completions.create(
+    model="deepseek-chat",  # 或使用完整 ID 如 deepseek/deepseek-v4.1-flash
+    messages=[
+        {"role": "user", "content": "你好！请做个自我介绍"}
+    ]
+)
+print(response.choices[0].message.content)
+```
+
+---
+
+### 2. 命令行 Agent 终端环境变量导出
+
+如果你使用命令行自主智能体（例如 Codex CLI、Claude Code、Aider 等），在终端中执行以下导出即可：
+
+#### Linux / macOS
+```bash
+# OpenAI 兼容协议体系 (Codex / Aider / OpenCode)
+export OPENAI_BASE_URL="http://bluerosion.vincentzyu233.cn:10101/v1"
+export OPENAI_API_KEY="sk-your-new-api-token"
+
+# Claude 体系协议 (Claude Code)
+export ANTHROPIC_BASE_URL="http://bluerosion.vincentzyu233.cn:10101"
+export ANTHROPIC_API_KEY="sk-your-new-api-token"
+```
+
+#### Windows PowerShell
+```powershell
+$env:OPENAI_BASE_URL="http://bluerosion.vincentzyu233.cn:10101/v1"
+$env:OPENAI_API_KEY="sk-your-new-api-token"
+
+$env:ANTHROPIC_BASE_URL="http://bluerosion.vincentzyu233.cn:10101"
+$env:ANTHROPIC_API_KEY="sk-your-new-api-token"
+```
+
+---
+
+### 3. 多平台聊天机器人 (AstrBot / Koishi / NoneBot)
+
+在机器人后台的 Provider / 渠道设置中：
+- **Provider 类型**：选择 `OpenAI` 或 `兼容 OpenAI`
+- **API Base**：填入 `http://bluerosion.vincentzyu233.cn:10101/v1`（如果是内网部署的机器人，推荐填 `http://192.168.31.51:53000/v1`）
+- **API Key**：填入你的令牌 `sk-xxxxxx`
+- **模型名称**：填入推荐别名（如 `deepseek-chat`、`kimi`、`qwen`）
