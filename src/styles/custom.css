@@ -85,3 +85,28 @@ body, h1, h2, h3, h4, p, a, span, button, input {
     max-width: 100% !important;
   }
 }
+
+/* Expressive Code 代码块保底视觉与精致终端框 */
+.expressive-code {
+  margin: 1.5rem 0;
+}
+
+.expressive-code figure.frame {
+  border-radius: 10px;
+  border: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-black);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.expressive-code pre {
+  padding: 1rem 1.25rem !important;
+  background: transparent !important;
+}
+
+.expressive-code .copy button {
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+

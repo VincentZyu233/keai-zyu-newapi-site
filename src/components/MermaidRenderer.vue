@@ -58,9 +58,19 @@ async function renderDiagrams() {
       wrapper.className = 'mermaid-rendered-wrapper';
       wrapper.innerHTML = svg;
       
-      // 找到外层的 figure (Expressive Code wrapper) 并替换
-      const figure = pre.closest('.expressive-code') || pre;
-      figure.parentNode.replaceChild(wrapper, figure);
+      // 找到外层的 .expressive-code 容器
+      const ecContainer = pre.closest('.expressive-code');
+      if (ecContainer) {
+        // Expressive Code 会把当前页面共用的样式表 link 和脚本放在首个代码块中
+        // 在替换 mermaid 图表节点前，先将其转移到 document.head，防止后续所有代码块样式失效
+        const assets = ecContainer.querySelectorAll('link, script');
+        assets.forEach(asset => {
+          document.head.appendChild(asset);
+        });
+      }
+
+      const targetToReplace = ecContainer || pre;
+      targetToReplace.parentNode.replaceChild(wrapper, targetToReplace);
     } catch (err) {
       console.warn('Failed to render auto mermaid block:', err);
     }
