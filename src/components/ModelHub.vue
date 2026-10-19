@@ -183,7 +183,7 @@ const rawModels = [
   { short: "dsv4f", id: "deepseek/deepseek-v4-flash-fast", vendor: "DeepSeek", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek 极速高吞吐响应模式" },
   { short: "qwen-plus", id: "Qwen/Qwen3.7-Plus", vendor: "Qwen", inPrice: 0.15, outPrice: 0.60, desc: "兼顾性能与成本的通义平衡版" },
   { short: "gemini-flash", id: "google/gemini-3.8-flash", vendor: "其它", inPrice: 0.15, outPrice: 0.60, desc: "谷歌核心轻量高吞吐推理 Flash 模型" },
-  { short: "dsv4fl", id: "deepseek/deepseek-v4-flash-vision-exp", vendor: "DeepSeek", inPrice: 0.28, outPrice: 0.60, desc: "DeepSeek 多模态视觉解析增强" },
+  { short: "dsv4fve", id: "deepseek/deepseek-v4-flash-vision-exp", vendor: "DeepSeek", inPrice: 0.28, outPrice: 0.60, desc: "DeepSeek 多模态视觉解析增强" },
   { short: "qwen", id: "Qwen/Qwen3.8-Max", vendor: "Qwen", inPrice: 0.40, outPrice: 1.60, desc: "通义旗舰级自主长程逻辑与工具调用" },
   { short: "qwen-max", id: "Qwen/Qwen3.8-Max", vendor: "Qwen", inPrice: 0.40, outPrice: 1.60, desc: "通义千问 3.8 Max 满血旗舰版" },
   { short: "minimax-m3", id: "MiniMaxAI/MiniMax-M3", vendor: "MiniMax", inPrice: 0.40, outPrice: 1.20, desc: "稀宇旗舰多模态 Agent" },
