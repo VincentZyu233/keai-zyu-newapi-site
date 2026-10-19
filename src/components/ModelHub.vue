@@ -4,7 +4,7 @@
     <div class="control-panel">
       <!-- 搜索栏 -->
       <div class="search-box">
-        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <input
           v-model="searchQuery"
           type="text"
@@ -36,7 +36,7 @@
         :class="{ active: selectedCategory === cat }"
         @click="selectedCategory = cat"
       >
-        {{ cat }}
+        <span class="tab-text">{{ cat }}</span>
         <span class="count-badge">
           {{ getCategoryCount(cat) }}
         </span>
@@ -269,9 +269,10 @@ function copyText(text, label) {
 .model-hub-container {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.1rem;
   margin: 1rem 0;
   font-family: var(--sl-font);
+  width: 100%;
 }
 
 /* 控制栏 */
@@ -287,26 +288,30 @@ function copyText(text, label) {
   position: relative;
   flex: 1;
   min-width: 280px;
+  height: 38px;
 }
 
 .search-icon {
   position: absolute;
-  left: 0.85rem;
+  left: 0.9rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--sl-color-gray-3);
+  pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.65rem 2.2rem 0.65rem 2.4rem;
+  height: 100%;
+  padding: 0 2.2rem 0 2.4rem;
   border-radius: 9999px;
   border: 1px solid var(--sl-color-gray-5);
   background: var(--sl-color-gray-6);
   color: var(--sl-color-white);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
   outline: none;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -316,36 +321,41 @@ function copyText(text, label) {
 
 .clear-btn {
   position: absolute;
-  right: 0.75rem;
+  right: 0.8rem;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--sl-color-gray-3);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  padding: 0.2rem;
 }
 
 /* 折扣切换开关 */
 .rate-toggle {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   background: var(--sl-color-gray-6);
-  padding: 0.4rem 0.85rem;
+  padding: 0 0.85rem;
+  height: 38px;
   border-radius: 9999px;
   border: 1px solid var(--sl-color-gray-5);
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .toggle-label {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   color: var(--sl-color-gray-3);
   transition: color 0.2s ease;
+  user-select: none;
 }
 
 .toggle-label.active {
   color: var(--sl-color-white);
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .toggle-label.highlight.active {
@@ -355,7 +365,7 @@ function copyText(text, label) {
 .switch {
   position: relative;
   display: inline-block;
-  width: 38px;
+  width: 36px;
   height: 20px;
 }
 
@@ -373,7 +383,7 @@ function copyText(text, label) {
   right: 0;
   bottom: 0;
   background-color: var(--sl-color-gray-5);
-  transition: .3s;
+  transition: .25s;
   border-radius: 20px;
 }
 
@@ -385,7 +395,7 @@ function copyText(text, label) {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: .3s;
+  transition: .25s;
   border-radius: 50%;
 }
 
@@ -394,28 +404,33 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(18px);
+  transform: translateX(16px);
 }
 
-/* 分类 Tab */
+/* 分类 Tab - 尺寸与高低严格统一 */
 .category-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .tab-btn {
+  height: 34px;
+  padding: 0 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   background: var(--sl-color-gray-6);
   border: 1px solid var(--sl-color-gray-5);
   color: var(--sl-color-gray-2);
-  padding: 0.35rem 0.8rem;
   border-radius: 8px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  box-sizing: border-box;
+  line-height: 1;
 }
 
 .tab-btn:hover {
@@ -430,47 +445,65 @@ input:checked + .slider:before {
   font-weight: 600;
 }
 
+.tab-text {
+  line-height: 1;
+}
+
 .count-badge {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  min-width: 18px;
+  padding: 0 0.35rem;
+  font-size: 0.72rem;
+  font-family: var(--sl-font-mono);
   background: rgba(0, 0, 0, 0.25);
-  padding: 0.1rem 0.4rem;
   border-radius: 9999px;
+  line-height: 1;
+  box-sizing: border-box;
 }
 
 /* 状态栏 */
 .status-bar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  gap: 0.5rem;
+  font-size: 0.82rem;
   color: var(--sl-color-gray-3);
   padding: 0 0.25rem;
 }
 
-/* 表格包装器 */
+/* 表格包装器 - 充满宽度并自适应 */
 .table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 12px;
   background: var(--sl-color-black);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .model-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .model-table th {
   background: var(--sl-color-gray-6);
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 0.85rem;
   font-weight: 600;
   color: var(--sl-color-gray-2);
   border-bottom: 2px solid var(--sl-color-gray-5);
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
+  vertical-align: middle;
 }
 
 .model-table th:hover {
@@ -478,19 +511,42 @@ input:checked + .slider:before {
 }
 
 .sort-icon {
-  margin-left: 0.3rem;
-  font-size: 0.8rem;
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
 }
 
 .model-table td {
-  padding: 0.65rem 1rem;
+  padding: 0.6rem 0.85rem;
   border-bottom: 1px solid var(--sl-color-gray-6);
+  vertical-align: middle;
 }
 
-.td-index {
-  color: var(--sl-color-gray-3);
-  font-size: 0.8rem;
+/* 列宽分配与不换行控制 */
+.th-index, .td-index {
   width: 40px;
+  text-align: center;
+  color: var(--sl-color-gray-3);
+  font-size: 0.78rem;
+}
+
+.th-short, .td-short {
+  width: 140px;
+  white-space: nowrap;
+}
+
+.th-id, .td-id {
+  white-space: nowrap;
+}
+
+.th-price, .td-price {
+  width: 120px;
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 1.25rem;
+}
+
+.th-desc, .td-desc {
+  min-width: 220px;
 }
 
 .clickable {
@@ -498,15 +554,22 @@ input:checked + .slider:before {
   transition: all 0.15s ease;
 }
 
+/* 短别名胶囊 - 严禁折行并保持统一高度 */
 .code-pill {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 0.55rem;
   background: rgba(244, 63, 94, 0.12);
   border: 1px solid rgba(244, 63, 94, 0.3);
   color: var(--sl-color-accent);
   border-radius: 6px;
   font-family: var(--sl-font-mono);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  white-space: nowrap !important;
+  box-sizing: border-box;
+  line-height: 1;
 }
 
 .code-pill:hover {
@@ -515,10 +578,13 @@ input:checked + .slider:before {
   transform: translateY(-1px);
 }
 
+/* 完整模型 ID - 保持一行整洁 */
 .code-full {
   font-family: var(--sl-font-mono);
   color: var(--sl-color-gray-1);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
+  white-space: nowrap !important;
+  display: inline-block;
 }
 
 .code-full:hover {
@@ -529,7 +595,6 @@ input:checked + .slider:before {
 .td-price {
   font-family: var(--sl-font-mono);
   font-weight: 600;
-  white-space: nowrap;
 }
 
 .in-price {
@@ -542,11 +607,14 @@ input:checked + .slider:before {
 
 .td-desc {
   color: var(--sl-color-gray-2);
-  font-size: 0.85rem;
+  font-size: 0.84rem;
 }
 
 .text-muted {
   color: var(--sl-color-gray-4);
+  font-size: 0.8rem;
+  display: inline-block;
+  padding-left: 0.5rem;
 }
 
 /* 核心 FLIP 平滑动画 */
@@ -572,9 +640,9 @@ input:checked + .slider:before {
   right: 2rem;
   background: var(--sl-color-accent);
   color: white;
-  padding: 0.6rem 1.2rem;
+  padding: 0.55rem 1.1rem;
   border-radius: 9999px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: bold;
   display: flex;
   align-items: center;
