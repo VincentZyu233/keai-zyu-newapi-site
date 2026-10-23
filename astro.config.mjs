@@ -30,6 +30,10 @@ export default defineConfig({
           slug: 'quickstart'
         },
         {
+          label: '🏆 GOAT 模型梯队与避坑指南',
+          slug: 'tiers'
+        },
+        {
           label: '📊 动态模型表格',
           slug: 'models'
         },
