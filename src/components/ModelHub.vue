@@ -1,5 +1,38 @@
 <template>
   <div class="model-hub-container not-content">
+    <!-- 顶部号池总览与一级切换 Tab -->
+    <div class="pool-switcher">
+      <button
+        class="pool-tab-btn"
+        :class="{ active: currentPool === 'goat' }"
+        @click="switchPool('goat')"
+      >
+        <span class="pool-icon">🐐</span>
+        <div class="pool-info">
+          <div class="pool-title-row">
+            <span class="pool-title">GOAT Plan 官方渠道</span>
+            <span class="pool-badge goat-badge">商业付费 · 1.25 折</span>
+          </div>
+          <span class="pool-sub">Command Code 优质上游 · 8x 补贴与 95%+ 缓存</span>
+        </div>
+      </button>
+
+      <button
+        class="pool-tab-btn"
+        :class="{ active: currentPool === 'workbuddy' }"
+        @click="switchPool('workbuddy')"
+      >
+        <span class="pool-icon">🤖</span>
+        <div class="pool-info">
+          <div class="pool-title-row">
+            <span class="pool-title">WorkBuddy 双活池</span>
+            <span class="pool-badge wb-badge">自建双节点 · 100% 免费</span>
+          </div>
+          <span class="pool-sub">AMD + 天翼云异地灾备 · 独立分组不扣拼车额度</span>
+        </div>
+      </button>
+    </div>
+
     <!-- 顶部操作控制栏 -->
     <div class="control-panel">
       <!-- 搜索栏 -->
@@ -8,14 +41,14 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="搜索短别名 / 上游模型 ID / 梯队 (T1/T2/T3) / 说明..."
+          :placeholder="searchPlaceholder"
           class="search-input"
         />
         <button v-if="searchQuery" @click="searchQuery = ''" class="clear-btn">✕</button>
       </div>
 
-      <!-- 费率模式切换开关 -->
-      <div class="rate-toggle">
+      <!-- 费率模式切换开关（仅在 GOAT 池显示，WB 池显示免费徽章） -->
+      <div v-if="currentPool === 'goat'" class="rate-toggle">
         <span class="toggle-label" :class="{ active: !isDiscountMode }">上游标杆价</span>
         <label class="switch">
           <input type="checkbox" v-model="isDiscountMode" />
@@ -25,12 +58,16 @@
           GOAT T1 实付 (1.25 折)
         </span>
       </div>
+      <div v-else class="wb-rate-badge">
+        <span class="badge-icon">🎉</span>
+        <span class="badge-text">全场 100% 免费福利 · 独立分组不扣拼车余额</span>
+      </div>
     </div>
 
     <!-- 品牌厂商分类过滤器 -->
     <div class="category-tabs">
       <button
-        v-for="cat in categories"
+        v-for="cat in currentCategories"
         :key="cat"
         class="tab-btn"
         :class="{ active: selectedCategory === cat }"
@@ -45,8 +82,10 @@
 
     <!-- 状态统计栏 -->
     <div class="status-bar">
-      <span>已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款模型（包含 <strong>{{ t1Count }}</strong> 款 T1 黄金模型，<strong>{{ blockedCount }}</strong> 款网关拦截保护模型）</span>
-      <span class="sort-tip">💡 T1 享 8x 补贴与 95%+ 缓存折扣；T3 高消耗模型已开启网关拦截保护</span>
+      <span v-if="currentPool === 'goat'">已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款模型（包含 <strong>{{ t1Count }}</strong> 款 T1 黄金模型，<strong>{{ blockedCount }}</strong> 款网关拦截保护模型）</span>
+      <span v-else>已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款 WorkBuddy 双活模型（支持学校 AMD 与天翼云双节点智能负载均衡与容灾）</span>
+      <span v-if="currentPool === 'goat'" class="sort-tip">💡 T1 享 8x 补贴与 95%+ 缓存折扣；T3 高消耗模型已开启网关拦截保护</span>
+      <span v-else class="sort-tip">💡 支持 amd/ 和 tyy/ 前缀直接指定单一物理节点，通用模型名走 50:50 自动轮询</span>
     </div>
 
     <!-- 动态动画表格 -->
@@ -110,7 +149,7 @@
             v-for="(item, index) in filteredModels"
             :key="item.uid"
             class="model-row"
-            :class="{ 'row-blocked': item.tier === 'T3' }"
+            :class="{ 'row-blocked': item.tier === 'T3', 'row-wb': currentPool === 'workbuddy' }"
           >
             <td class="td-index">{{ index + 1 }}</td>
             <td class="td-tier">
@@ -142,14 +181,27 @@
                 {{ item.id }}
               </span>
             </td>
-            <td class="td-price in-price">
-              ${{ formatPrice(item) }}
+            <td class="td-price in-price" :class="{ 'free-price': currentPool === 'workbuddy' }">
+              <template v-if="currentPool === 'workbuddy'">
+                <span class="price-val">$0.000</span>
+                <span class="free-text">免费</span>
+              </template>
+              <template v-else>
+                ${{ formatPrice(item) }}
+              </template>
             </td>
-            <td class="td-price out-price">
-              ${{ formatPrice(item, true) }}
+            <td class="td-price out-price" :class="{ 'free-price': currentPool === 'workbuddy' }">
+              <template v-if="currentPool === 'workbuddy'">
+                <span class="price-val">$0.000</span>
+                <span class="free-text">免费</span>
+              </template>
+              <template v-else>
+                ${{ formatPrice(item, true) }}
+              </template>
             </td>
             <td class="td-desc">
               <span v-if="item.tier === 'T3'" class="desc-blocked-tag">[已拦截保护]</span>
+              <span v-if="item.node" class="node-tag" :class="item.node">{{ item.node === 'amd' ? 'AMD 节点' : '天翼云节点' }}</span>
               {{ item.desc }}
             </td>
           </tr>
@@ -175,6 +227,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 
+const currentPool = ref('goat'); // 'goat' | 'workbuddy'
 const searchQuery = ref('');
 const selectedCategory = ref('全部');
 const sortKey = ref('inPrice');
@@ -182,10 +235,28 @@ const sortAsc = ref(true);
 const isDiscountMode = ref(true); // 默认开启实付展示
 const toastMsg = ref('');
 
-const categories = ['全部', 'DeepSeek', 'Kimi', 'GLM', 'Qwen', 'Grok', 'MiniMax', 'Xiaomi', '其它'];
+const goatCategories = ['全部', 'DeepSeek', 'Kimi', 'GLM', 'Qwen', 'Grok', 'MiniMax', 'Xiaomi', '其它'];
+const wbCategories = ['全部', 'DeepSeek', 'Kimi', 'GLM', '混元', 'MiniMax', 'StepFun', 'Xiaomi', '其它'];
 
-// 50 款模型清单（带 T1/T2/T3 梯队标识与拦截保护标记）
-const rawModels = [
+const currentCategories = computed(() => {
+  return currentPool.value === 'goat' ? goatCategories : wbCategories;
+});
+
+const searchPlaceholder = computed(() => {
+  return currentPool.value === 'goat'
+    ? '搜索短别名 / 上游模型 ID / 梯队 (T1/T2/T3) / 说明...'
+    : '搜索模型名称 / 节点别名 (amd/tyy) / 厂商 / 特性...';
+});
+
+function switchPool(pool) {
+  if (currentPool.value === pool) return;
+  currentPool.value = pool;
+  selectedCategory.value = '全部';
+  searchQuery.value = '';
+}
+
+// 1. GOAT 渠道 50 款模型清单
+const goatRawModels = [
   { short: "qwen-flash", id: "Qwen/Qwen3.8-Flash", vendor: "Qwen", tier: "T1", inPrice: 0.03, outPrice: 0.13, desc: "通义千问极速轻量模型，超低延迟与极低成本" },
   { short: "qwen-omni", id: "Qwen/Qwen3.8-Omni-Flash", vendor: "Qwen", tier: "T1", inPrice: 0.05, outPrice: 0.20, desc: "通义多模态音频与视觉理解轻量版" },
   { short: "qwen-27b", id: "Qwen/Qwen3.8-27B", vendor: "Qwen", tier: "T1", inPrice: 0.08, outPrice: 0.30, desc: "27B 参数紧凑型代码与视觉推理（官方点名满额补贴）" },
@@ -238,15 +309,46 @@ const rawModels = [
   { short: "gpt-4o-mini", id: "openai/gpt-4o-mini-compatible", vendor: "其它", tier: "T2", inPrice: 0.15, outPrice: 0.60, desc: "多模态轻量级极速日常推理" }
 ].map((m, idx) => ({
   ...m,
-  uid: `${m.short || 'none'}__${m.id}__${idx}`
+  uid: `goat__${m.short || 'none'}__${m.id}__${idx}`
 }));
 
-const t1Count = computed(() => rawModels.filter(m => m.tier === 'T1').length);
-const blockedCount = computed(() => rawModels.filter(m => m.tier === 'T3').length);
+// 2. WorkBuddy 双活池 20 款模型清单
+const wbRawModels = [
+  { short: "deepseek-v4-pro", id: "deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "旗舰满血推理模型，自动在学校 AMD 与天翼云双节点 50:50 轮询负载均衡" },
+  { short: "amd/deepseek-v4-pro", id: "amd/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, node: "amd", desc: "强制指定路由至学校 AMD 机器节点 (0ms 内网环回极速响应)" },
+  { short: "tyy/deepseek-v4-pro", id: "tyy/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, node: "tyy", desc: "强制指定路由至天翼云电信专网节点 (50ms 异地加密专网灾备)" },
+  { short: "deepseek-v4.1", id: "deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "DeepSeek V4.1 极速版，混合注意力机制，超快首字与高吞吐代码生成" },
+  { short: "deepseek-v3", id: "deepseek-v3", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "DeepSeek V3 经典版本别名，网关无缝映射至 V4 Pro 后端服务" },
+  { short: "deepseek-chat", id: "deepseek-chat", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "DeepSeek Chat 官方标准别名，直通双活后端满血服务" },
+  { short: "ds-v4-pro-std", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "带厂商前缀的标准格式 ID，全面兼容各类自动化智能体与 CLI" },
+  { short: "ds-v4.1-flash-std", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "带厂商前缀的标准格式 ID 极速版" },
+  { short: "glm-5.3", id: "glm-5.3", vendor: "GLM", tier: "T1", inPrice: 0, outPrice: 0, desc: "智谱前沿自主智能体能力旗舰，长程规划、复杂工具调用与代码重构表现出色" },
+  { short: "glm-5.3-flash", id: "glm-5.3-flash", vendor: "GLM", tier: "T1", inPrice: 0, outPrice: 0, desc: "智谱极速高性价比 1M 超长上下文推理模型，日常高频编码首选" },
+  { short: "glm-5.2", id: "glm-5.2", vendor: "GLM", tier: "T1", inPrice: 0, outPrice: 0, desc: "智谱经典工程代码旗舰，逻辑扎实、输出极其稳定可靠" },
+  { short: "kimi-k3.1-pro", id: "kimi-k3.1-pro", vendor: "Kimi", tier: "T1", inPrice: 0, outPrice: 0, desc: "月之暗面 Kimi 3.1 Pro 旗舰，带满血长思维链思考推理 (Reasoning Tokens)" },
+  { short: "kimi-k3-1", id: "kimi-k3-1", vendor: "Kimi", tier: "T1", inPrice: 0, outPrice: 0, desc: "Kimi K3.1 兼容格式短别名" },
+  { short: "kimi-k2.8", id: "kimi-k2.8-preview", vendor: "Kimi", tier: "T1", inPrice: 0, outPrice: 0, desc: "Kimi K2.8 预览版长上下文工作模型" },
+  { short: "hy4std", id: "hy4std", vendor: "混元", tier: "T1", inPrice: 0, outPrice: 0, desc: "腾讯混元大模型 4.0 标准版 (Tencent Hunyuan 4 Standard)" },
+  { short: "hy4flash", id: "hy4flash", vendor: "混元", tier: "T1", inPrice: 0, outPrice: 0, desc: "腾讯混元大模型 4.0 极速版 (Tencent Hunyuan 4 Flash)" },
+  { short: "minimax-flash", id: "minimax-m3.1-flash", vendor: "MiniMax", tier: "T2", inPrice: 0, outPrice: 0, desc: "MiniMax 原生多模态 M3.1 极速版，可控思考深度" },
+  { short: "step-5", id: "step-5-preview", vendor: "StepFun", tier: "T2", inPrice: 0, outPrice: 0, desc: "阶跃星辰 Step-5 稀疏 MoE 架构长文本模型" },
+  { short: "mimo-pro", id: "mimo-v2.6-pro", vendor: "Xiaomi", tier: "T2", inPrice: 0, outPrice: 0, desc: "小米旗舰级多模态代码分析模型，长程上下文架构理解扎实" },
+  { short: "space-bunny", id: "space-bunny", vendor: "其它", tier: "T2", inPrice: 0, outPrice: 0, desc: "腾讯独家专属实验模型 (Space Bunny)，趣味对话与轻量推理" }
+].map((m, idx) => ({
+  ...m,
+  uid: `wb__${m.short || 'none'}__${m.id}__${idx}`
+}));
+
+const currentRawModels = computed(() => {
+  return currentPool.value === 'goat' ? goatRawModels : wbRawModels;
+});
+
+const t1Count = computed(() => currentRawModels.value.filter(m => m.tier === 'T1').length);
+const blockedCount = computed(() => currentRawModels.value.filter(m => m.tier === 'T3').length);
 
 function getCategoryCount(cat) {
-  if (cat === '全部') return rawModels.length;
-  return rawModels.filter(m => m.vendor === cat).length;
+  if (cat === '全部') return currentRawModels.value.length;
+  return currentRawModels.value.filter(m => m.vendor === cat).length;
 }
 
 function getTierLabel(tier) {
@@ -262,12 +364,17 @@ function getTierClass(tier) {
 }
 
 function getTierTooltip(tier) {
+  if (currentPool.value === 'workbuddy') {
+    if (tier === 'T1') return 'WorkBuddy 核心旗舰：国内顶级模型，全场免费畅享！';
+    return 'WorkBuddy 优质次旗舰模型。';
+  }
   if (tier === 'T1') return 'T1 黄金梯队：享 GOAT Plan 8x 信用与 95%+ 缓存命中，闭眼写代码！';
   if (tier === 'T2') return 'T2 白银梯队：国产优质次旗舰，适合特定任务微调。';
   return 'T3 避坑模型：无官方缓存加速，易烧干 5 小时配额，网关已开启拦截保护。';
 }
 
 function formatPrice(item, isOut = false) {
+  if (currentPool.value === 'workbuddy') return '0.000';
   const basePrice = isOut ? item.outPrice : item.inPrice;
   if (!isDiscountMode.value) return basePrice.toFixed(basePrice < 0.01 ? 4 : 3);
   
@@ -298,19 +405,20 @@ function getSortIndicator(key) {
 }
 
 const filteredModels = computed(() => {
-  let list = rawModels.slice();
+  let list = [...currentRawModels.value];
 
   if (selectedCategory.value !== '全部') {
     list = list.filter(item => item.vendor === selectedCategory.value);
   }
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.trim().toLowerCase();
+  const q = searchQuery.value.trim().toLowerCase();
+  if (q) {
     list = list.filter(item =>
       (item.short && item.short.toLowerCase().includes(q)) ||
       item.id.toLowerCase().includes(q) ||
       item.desc.toLowerCase().includes(q) ||
-      (item.tier && item.tier.toLowerCase().includes(q))
+      (item.tier && item.tier.toLowerCase().includes(q)) ||
+      (item.node && item.node.toLowerCase().includes(q))
     );
   }
 
@@ -355,6 +463,93 @@ function copyText(text, label) {
   flex-direction: column;
   gap: 1.25rem;
   font-family: var(--sl-font-system, system-ui, -apple-system, sans-serif);
+}
+
+/* 顶部号池切换 Tab */
+.pool-switcher {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.pool-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: 12px;
+  border: 2px solid var(--sl-color-gray-5);
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-white);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.pool-tab-btn:hover {
+  border-color: var(--sl-color-gray-4);
+  transform: translateY(-2px);
+  background: var(--sl-color-gray-5);
+}
+
+.pool-tab-btn.active {
+  border-color: var(--sl-color-accent);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.12) 0%, rgba(30, 41, 59, 0.7) 100%);
+  box-shadow: 0 4px 20px -2px rgba(244, 63, 94, 0.25);
+}
+
+.pool-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pool-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.pool-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pool-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--sl-color-white);
+}
+
+.pool-sub {
+  font-size: 0.8rem;
+  color: var(--sl-color-gray-3);
+  line-height: 1.3;
+}
+
+.pool-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.goat-badge {
+  background: rgba(244, 63, 94, 0.2);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+.wb-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
 /* 控制栏 */
@@ -417,7 +612,7 @@ function copyText(text, label) {
   color: var(--sl-color-white);
 }
 
-/* 开关控件 */
+/* 开关控件与 WB 免费标签 */
 .rate-toggle {
   display: flex;
   align-items: center;
@@ -426,6 +621,19 @@ function copyText(text, label) {
   padding: 0.4rem 0.85rem;
   border-radius: 9999px;
   border: 1px solid var(--sl-color-gray-5);
+}
+
+.wb-rate-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 0.45rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #34d399;
 }
 
 .toggle-label {
@@ -465,7 +673,7 @@ function copyText(text, label) {
   right: 0;
   bottom: 0;
   background-color: var(--sl-color-gray-4);
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: 0.3s;
   border-radius: 20px;
 }
 
@@ -477,7 +685,7 @@ function copyText(text, label) {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: 0.3s;
   border-radius: 50%;
 }
 
@@ -489,56 +697,49 @@ input:checked + .slider:before {
   transform: translateX(16px);
 }
 
-/* 分类标签栏 */
+/* 品牌厂商分类过滤器 */
 .category-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.5rem;
 }
 
 .tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 6px;
   border: 1px solid var(--sl-color-gray-5);
   background: var(--sl-color-gray-6);
   color: var(--sl-color-gray-2);
   font-size: 0.84rem;
   cursor: pointer;
-  transition: all 0.15s ease;
-  line-height: 1.2;
+  transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
-  border-color: var(--sl-color-gray-4);
+  background: var(--sl-color-gray-5);
   color: var(--sl-color-white);
+  border-color: var(--sl-color-gray-4);
 }
 
 .tab-btn.active {
   background: var(--sl-color-accent);
-  border-color: var(--sl-color-accent);
   color: white;
-  font-weight: 500;
+  border-color: var(--sl-color-accent);
+  font-weight: 600;
 }
 
 .count-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 18px;
-  min-width: 18px;
-  padding: 0 0.35rem;
   font-size: 0.72rem;
-  font-family: var(--sl-font-mono);
-  background: rgba(0, 0, 0, 0.25);
+  padding: 0.05rem 0.35rem;
   border-radius: 9999px;
-  line-height: 1;
-  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.2);
+  line-height: 1.2;
 }
 
-/* 状态栏 */
+/* 状态统计栏 */
 .status-bar {
   display: flex;
   flex-wrap: wrap;
@@ -547,261 +748,174 @@ input:checked + .slider:before {
   gap: 0.5rem;
   font-size: 0.82rem;
   color: var(--sl-color-gray-3);
-  padding: 0 0.25rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px dashed var(--sl-color-gray-5);
 }
 
-/* 表格包装器 */
+.sort-tip {
+  color: var(--sl-color-gray-3);
+}
+
+/* 动态动画表格 */
 .table-wrapper {
   overflow-x: auto;
+  border-radius: 8px;
   border: 1px solid var(--sl-color-gray-5);
-  border-radius: 12px;
-  background: var(--sl-color-black);
-  width: 100%;
-  box-sizing: border-box;
+  background: var(--sl-color-gray-6);
 }
 
 .model-table {
-  display: table !important;
-  width: 100% !important;
-  min-width: 1050px;
-  table-layout: fixed;
-  border-collapse: separate;
-  border-spacing: 0;
+  width: 100%;
+  border-collapse: collapse;
   text-align: left;
   font-size: 0.88rem;
-  line-height: 1.5;
-}
-
-.model-table thead {
-  background: var(--sl-color-gray-6);
 }
 
 .model-table th {
-  background: var(--sl-color-gray-6);
+  background: rgba(0, 0, 0, 0.2);
   padding: 0.75rem 0.85rem;
   font-weight: 600;
-  color: var(--sl-color-gray-2);
-  border-bottom: 2px solid var(--sl-color-gray-5);
-  user-select: none;
+  color: var(--sl-color-white);
+  border-bottom: 1px solid var(--sl-color-gray-5);
   white-space: nowrap;
-  vertical-align: middle;
-  box-sizing: border-box;
-  transition: all 0.15s ease;
 }
 
 .model-table th.sortable {
   cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
 }
 
 .model-table th.sortable:hover {
-  background: rgba(244, 63, 94, 0.1);
-  color: var(--sl-color-accent);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .model-table th.sortable.active {
   color: var(--sl-color-accent);
-  background: rgba(244, 63, 94, 0.12);
-  border-bottom-color: var(--sl-color-accent);
-}
-
-.model-table thead tr th:first-child {
-  border-top-left-radius: 11px;
-}
-
-.model-table thead tr th:last-child {
-  border-top-right-radius: 11px;
-}
-
-.sort-icon {
-  margin-left: 0.25rem;
-  font-size: 0.75rem;
-  display: inline-block;
-  opacity: 0.7;
-}
-
-.model-table th.sortable.active .sort-icon {
-  opacity: 1;
-  font-weight: bold;
-}
-
-.model-row {
-  transition: background-color 0.15s ease;
-}
-
-.model-row:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.model-row.row-blocked {
-  background: rgba(239, 68, 68, 0.04);
-}
-
-.model-row.row-blocked:hover {
-  background: rgba(239, 68, 68, 0.08);
-}
-
-.model-table td {
-  padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--sl-color-gray-6);
-  vertical-align: middle;
-  box-sizing: border-box;
 }
 
 .th-inner {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  white-space: nowrap;
 }
 
 .price-header {
-  justify-content: flex-end;
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .unit-tag {
-  font-size: 0.72rem;
-  font-family: var(--sl-font-mono);
-  color: var(--sl-color-gray-3);
+  font-size: 0.7rem;
+  color: var(--sl-color-gray-4);
   font-weight: normal;
-  letter-spacing: -0.2px;
 }
 
-.model-table th.sortable.active .unit-tag {
-  color: var(--sl-color-accent);
-  opacity: 0.85;
-}
-
-/* 列宽精准分配 */
-.th-index, .td-index {
-  width: 44px;
-  text-align: center;
+.sort-icon {
+  font-size: 0.8rem;
   color: var(--sl-color-gray-3);
-  font-size: 0.78rem;
 }
 
-.th-tier, .td-tier {
-  width: 95px;
-  text-align: center;
-  white-space: nowrap;
+th.sortable.active .sort-icon {
+  color: var(--sl-color-accent);
+}
+
+.model-table td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.model-row {
+  transition: background 0.2s ease;
+}
+
+.model-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.row-blocked {
+  opacity: 0.65;
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.row-wb:hover {
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.td-index {
+  color: var(--sl-color-gray-4);
+  font-size: 0.8rem;
+  width: 32px;
 }
 
 .badge-tier {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.2rem 0.55rem;
-  border-radius: 9999px;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.badge-tier.tier-t1 {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+.tier-t1 {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
 }
 
-.badge-tier.tier-t2 {
+.tier-t2 {
   background: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.35);
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-.badge-tier.tier-t3 {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.35);
+.tier-t3 {
+  background: rgba(107, 114, 128, 0.2);
+  color: #9ca3af;
+  border: 1px solid rgba(107, 114, 128, 0.3);
 }
 
-.th-short, .td-short {
-  width: 145px;
+.code-pill {
+  font-family: var(--sl-font-mono);
+  background: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.84rem;
+  border: 1px solid rgba(244, 63, 94, 0.25);
   white-space: nowrap;
 }
 
-.th-id, .td-id {
-  width: 310px;
+.code-full {
+  font-family: var(--sl-font-mono);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--sl-color-gray-2);
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   white-space: nowrap;
-}
-
-.th-price, .td-price {
-  width: 125px;
-  white-space: nowrap;
-  text-align: right;
-  padding-right: 0.95rem;
-}
-
-.th-desc, .td-desc {
-  width: 280px;
-  min-width: 220px;
-  max-width: 320px;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.45;
-}
-
-.desc-blocked-tag {
-  color: #ef4444;
-  font-weight: 600;
-  font-size: 0.78rem;
-  margin-right: 0.3rem;
-}
-
-.th-desc {
-  cursor: default !important;
-}
-
-.th-desc:hover {
-  color: var(--sl-color-gray-2) !important;
 }
 
 .clickable {
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
-/* 短别名胶囊 */
-.code-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  padding: 0 0.55rem;
-  background: rgba(244, 63, 94, 0.12);
-  border: 1px solid rgba(244, 63, 94, 0.3);
-  color: var(--sl-color-accent);
-  border-radius: 6px;
-  font-family: var(--sl-font-mono);
-  font-size: 0.82rem;
-  white-space: nowrap !important;
-  box-sizing: border-box;
-  line-height: 1;
+.clickable:hover {
+  filter: brightness(1.2);
+  border-color: var(--sl-color-accent);
 }
 
-.code-pill:hover {
-  background: var(--sl-color-accent);
-  color: white;
-  transform: translateY(-1px);
-}
-
-/* 完整模型 ID */
-.code-full {
-  font-family: var(--sl-font-mono);
-  color: var(--sl-color-gray-1);
-  font-size: 0.84rem;
-  white-space: nowrap !important;
-  display: inline-block;
-}
-
-.code-full:hover {
-  color: var(--sl-color-accent);
-  text-decoration: underline;
+.clickable:active {
+  transform: scale(0.97);
 }
 
 .td-price {
   font-family: var(--sl-font-mono);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .in-price {
@@ -812,9 +926,50 @@ input:checked + .slider:before {
   color: #60a5fa;
 }
 
+.free-price {
+  color: #10b981 !important;
+}
+
+.free-text {
+  font-size: 0.72rem;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  margin-left: 0.3rem;
+  font-weight: normal;
+}
+
 .td-desc {
   color: var(--sl-color-gray-2);
   font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.desc-blocked-tag {
+  color: #ef4444;
+  font-weight: 600;
+  margin-right: 0.3rem;
+}
+
+.node-tag {
+  font-size: 0.72rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-right: 0.4rem;
+}
+
+.node-tag.amd {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.node-tag.tyy {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .text-muted {
