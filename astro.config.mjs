@@ -8,7 +8,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'keai-zyu-newapi-site',
-      favicon: '/favicon.png',
+      favicon: '/favicon.png?v=20261119',
       description: 'VincentZyu 的私人高可用 New API 专属网关文档与模型表格',
       logo: {
         src: './src/assets/logo.png',
