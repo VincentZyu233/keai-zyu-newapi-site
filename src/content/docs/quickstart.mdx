@@ -11,7 +11,7 @@ description: 标准 OpenAI 与 Claude Messages 兼容协议快速配置说明
 
 | 场景 | Base URL | 适用情况 |
 | :--- | :--- | :--- |
-| **公网穿透访问** | `http://bluerosion.vincentzyu233.cn:10101/v1` | 外出差旅、云服务器、跨网访问（全球可达） |
+| **公网穿透访问** | `http://公网域名:端口/v1` | 外出差旅、云服务器、跨网访问（私信管理员获取） |
 | **家庭局域网极速直连** | `http://192.168.x.x:53000/v1` | 本地终端、局域网机器（示例私网 IP，超低延迟） |
 
 ---
@@ -24,7 +24,7 @@ description: 标准 OpenAI 与 Claude Messages 兼容协议快速配置说明
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://bluerosion.vincentzyu233.cn:10101/v1",
+    base_url="http://公网域名:端口/v1",
     api_key="sk-your-new-api-token"
 )
 
@@ -46,20 +46,20 @@ print(response.choices[0].message.content)
 #### Linux / macOS
 ```bash
 # OpenAI 兼容协议体系 (Codex / Aider / OpenCode)
-export OPENAI_BASE_URL="http://bluerosion.vincentzyu233.cn:10101/v1"
+export OPENAI_BASE_URL="http://公网域名:端口/v1"
 export OPENAI_API_KEY="sk-your-new-api-token"
 
 # Claude 体系协议 (Claude Code)
-export ANTHROPIC_BASE_URL="http://bluerosion.vincentzyu233.cn:10101"
+export ANTHROPIC_BASE_URL="http://公网域名:端口"
 export ANTHROPIC_API_KEY="sk-your-new-api-token"
 ```
 
 #### Windows PowerShell
 ```powershell
-$env:OPENAI_BASE_URL="http://bluerosion.vincentzyu233.cn:10101/v1"
+$env:OPENAI_BASE_URL="http://公网域名:端口/v1"
 $env:OPENAI_API_KEY="sk-your-new-api-token"
 
-$env:ANTHROPIC_BASE_URL="http://bluerosion.vincentzyu233.cn:10101"
+$env:ANTHROPIC_BASE_URL="http://公网域名:端口"
 $env:ANTHROPIC_API_KEY="sk-your-new-api-token"
 ```
 
@@ -69,6 +69,98 @@ $env:ANTHROPIC_API_KEY="sk-your-new-api-token"
 
 在机器人后台的 Provider / 渠道设置中：
 - **Provider 类型**：选择 `OpenAI` 或 `兼容 OpenAI`
-- **API Base**：填入 `http://bluerosion.vincentzyu233.cn:10101/v1`（如果是内网部署的机器人，推荐填私网 IP 如 `http://192.168.x.x:53000/v1`）
+- **API Base**：填入 `http://公网域名:端口/v1`（如果是内网部署的机器人，推荐填私网 IP 如 `http://192.168.x.x:53000/v1`）
 - **API Key**：填入你的令牌 `sk-xxxxxx`
 - **模型名称**：填入推荐别名（如 `deepseek-chat`、`kimi`、`qwen`）
+
+---
+
+## 🎛️ 使用 CC Switch (CCS) 一键管理与接入编码智能体
+
+对于高频使用 **Codex CLI**、**OpenCode**、**Claude Code** 等自主编程智能体（Coding Agents）的同学，每次在终端手动配置环境变量或繁琐修改配置文件非常繁琐。
+
+推荐使用开源桌面切换器 **[CC Switch (CCS)](https://github.com/VincentZyu233/cc-switch)**。它可以直接解析并接管各大 Agent 的底层原生配置文件，实现多供应商与模型的「一键无缝热切换」。
+
+### 1. 在 CC Switch 中添加网关服务商
+
+1. 打开 **CC Switch** 桌面端，进入「服务商管理」点击 **添加服务商 (Add Provider)**。
+2. 基础信息配置：
+   - **供应商类型**：选择 `OpenAI Compatible`
+   - **名称**：可自定义（例如 `可爱 New API (自用)`）
+   - **Base URL**：
+     - 公网访问：`http://公网域名:端口/v1`
+     - 家庭内网：`http://192.168.x.x:53000/v1`
+   - **API Key**：填入在控制台生成的专属令牌 `sk-xxxxxx`
+3. **一键同步模型**：
+   - 点击模型选择框右侧的 **刷新图标 🔄**，CC Switch 会自动请求网关的 `/v1/models` 端点，批量拉取可用的全量模型（DeepSeek / GLM / Kimi / Qwen 等）。
+   - 勾选你需要的主力模型并保存。
+
+---
+
+### 2. 各智能体底层接入机制与使用指南
+
+CC Switch 不是简单的网络代理，而是直接对各智能体的原生配置文件进行无损修改与环境注入：
+
+#### 🟢 OpenCode 接入指南
+- **底层注入原理**：
+  OpenCode 默认配置文件位于 `~/.config/opencode/opencode.json`（Windows 为 `%USERPROFILE%\.config\opencode\opencode.json`）。底层采用 `@ai-sdk/openai` 驱动。
+  在 CC Switch 点击应用时，它会自动在 `provider` 字典中注入以下配置块并挂载可用模型：
+  ```json
+  {
+    "provider": {
+      "keai-newapi": {
+        "npm": "@ai-sdk/openai",
+        "options": {
+          "baseURL": "http://公网域名:端口/v1",
+          "apiKey": "sk-xxxxxx"
+        },
+        "models": {
+          "deepseek-chat": { "name": "DeepSeek Chat" },
+          "glm-5.3": { "name": "GLM 5.3" }
+        }
+      }
+    }
+  }
+  ```
+- **使用方法**：
+  在 CC Switch 的 OpenCode 面板勾选该服务商并点击「应用」。启动 OpenCode：
+  ```bash
+  opencode
+  ```
+  在终端交互界面输入 `/model`，即可直接在弹出的下拉列表中自由选择通过网关代理的各大模型。
+
+---
+
+#### 🔵 Codex CLI 接入指南
+- **底层注入原理**：
+  Codex CLI 配置持久化在 `~/.codex/config.toml`（Windows 为 `%USERPROFILE%\.codex\config.toml`）。Codex 原生设计了 `[model_providers]` 扩展协议。
+  CC Switch 切换时会自动向 `config.toml` 追加配置并激活：
+  ```toml
+  # 活跃提供商指定
+  model_provider = "keai_newapi"
+  model = "deepseek-chat" # 或 glm-5.3、kimi-latest
+
+  [model_providers.keai_newapi]
+  base_url = "http://公网域名:端口/v1"
+  api_key = "sk-xxxxxx"
+  wire_api = "chat" # 指定走兼容 chat 协议
+  ```
+- **使用方法**：
+  在 CC Switch 的 Codex 栏目中选中当前配置并应用后，直接在项目根目录启动 Codex：
+  ```bash
+  codex
+  ```
+  智能体将直接通过自建高可用网关进行全自主代码分析、文件编辑与单测编写，免除手动改 toml 的繁琐。
+
+---
+
+#### 🟣 Claude Code CLI 接入指南
+- **底层注入原理**：
+  Claude Code 原生读取 `~/.claude.json` 及环境变量 `ANTHROPIC_BASE_URL`。CC Switch 集中管理账号配置与多环境槽位，自动写入环境变量并标记 `hasCompletedOnboarding: true`（跳过冗长的首次欢迎向导）。
+- **使用方法**：
+  在 CC Switch 中为 Claude Code 激活该槽位（Base URL 对应填入 `http://公网域名:端口`，不带 `/v1`），随后在任意终端输入：
+  ```bash
+  claude
+  ```
+  即可享受一键打通的高速编程辅助体验。
+
