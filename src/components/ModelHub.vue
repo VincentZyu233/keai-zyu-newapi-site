@@ -82,9 +82,13 @@
 
     <!-- 状态统计栏 -->
     <div class="status-bar">
-      <span v-if="currentPool === 'goat'">已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款模型（包含 <strong>{{ t1Count }}</strong> 款 T1 黄金模型，<strong>{{ blockedCount }}</strong> 款网关拦截保护模型）</span>
-      <span v-else>已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款 WorkBuddy 双活模型（支持学校 AMD 与天翼云双节点智能负载均衡与容灾）</span>
-      <span v-if="currentPool === 'goat'" class="sort-tip">💡 T1 享 8x 补贴与 95%+ 缓存折扣；T3 高消耗模型已开启网关拦截保护</span>
+      <span v-if="currentPool === 'goat'">
+        已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款模型（包含 <strong>{{ t0Count }}</strong> 款 👑 T0 顶流神卡，<strong>{{ t1Count }}</strong> 款 🔥 T1 黄金主力，<strong>{{ blockedCount }}</strong> 款网关拦截保护）
+      </span>
+      <span v-else>
+        已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款 WorkBuddy 双活模型（包含 <strong>{{ t0Count }}</strong> 款 👑 T0 顶流神卡，<strong>{{ t1Count }}</strong> 款 🔥 T1 黄金主力，全场 100% 免费）
+      </span>
+      <span v-if="currentPool === 'goat'" class="sort-tip">💡 T0/T1 享 8x 补贴与 95%+ 缓存；T3 高消耗模型已开启网关拦截保护</span>
       <span v-else class="sort-tip">💡 支持 amd/ 和 tyy/ 前缀直接指定单一物理节点，通用模型名走 50:50 自动轮询</span>
     </div>
 
@@ -93,8 +97,28 @@
       <table class="model-table">
         <thead>
           <tr>
-            <th class="th-index"><span>#</span></th>
-            <th class="th-tier"><span>梯队评级</span></th>
+            <th
+              class="th-index sortable"
+              :class="{ active: sortKey === 'index' }"
+              @click="toggleSort('index')"
+              title="按默认推荐序号恢复排序"
+            >
+              <div class="th-inner">
+                <span>#</span>
+                <span class="sort-icon">{{ getSortIndicator('index') }}</span>
+              </div>
+            </th>
+            <th
+              class="th-tier sortable"
+              :class="{ active: sortKey === 'tier' }"
+              @click="toggleSort('tier')"
+              title="按梯队排序（优先级：梯队等级 -> 费率 -> 模型名）"
+            >
+              <div class="th-inner">
+                <span>梯队评级</span>
+                <span class="sort-icon">{{ getSortIndicator('tier') }}</span>
+              </div>
+            </th>
             <th
               class="th-short sortable"
               :class="{ active: sortKey === 'short' }"
@@ -149,7 +173,7 @@
             v-for="(item, index) in filteredModels"
             :key="item.uid"
             class="model-row"
-            :class="{ 'row-blocked': item.tier === 'T3', 'row-wb': currentPool === 'workbuddy' }"
+            :class="{ 'row-t0': item.tier === 'T0', 'row-blocked': item.tier === 'T3' && currentPool === 'goat', 'row-wb': currentPool === 'workbuddy' }"
           >
             <td class="td-index">{{ index + 1 }}</td>
             <td class="td-tier">
@@ -214,6 +238,39 @@
       </div>
     </div>
 
+    <!-- 底部表头交互与智能排序规则说明及叠甲声明 -->
+    <div class="table-footer-legend">
+      <div class="legend-header">
+        <span class="legend-icon">📐</span>
+        <span class="legend-title">表头点击与多级智能排序规则说明：</span>
+      </div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <span class="legend-tag">梯队评级 ↕</span>
+          <span class="legend-desc"><strong>梯队优先</strong>（👑 T0 ➔ 🔥 T1 ➔ ⚡ T2 ➔ 🚫/🧪 T3），梯队相同时自动按费率从低到高排列，费率相同按名称 A-Z 字母序。</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-tag">推荐短别名 / 模型 ID ↕</span>
+          <span class="legend-desc"><strong>模型名称首字母 A-Z</strong> 升序或降序排列，同名按梯队等级与费率智能保底。</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-tag">输入 / 输出费率 ↕</span>
+          <span class="legend-desc"><strong>费率升降序</strong>（GOAT 模式下按实付折扣费率计算），费率相同时优先展示高梯队优质模型。</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-tag"># 序号 ↕</span>
+          <span class="legend-desc"><strong>恢复官方默认推荐矩阵顺序</strong>，按平台核心推荐优先级展示。</span>
+        </div>
+      </div>
+      <!-- 叠甲声明 -->
+      <div class="disclaimer-row">
+        <span class="disclaimer-badge">🛡️ 叠甲声明</span>
+        <span class="disclaimer-text">
+          上述模型梯队分级（T0 ~ T3）综合搜集参考自互联网公开基准评测、各厂商官方技术白皮书、社区 Coding Agent（Codex / Claude Code / Cursor）实测吞吐与缓存命中表现，可能带有一定主观倾向与时效性差异，仅供选型与避坑参考，不代表绝对官方权威排名，具体体验请以实际业务与请求实测为准。
+        </span>
+      </div>
+    </div>
+
     <!-- 复制成功微提示 Toast -->
     <Transition name="fade">
       <div v-if="toastMsg" class="toast-popup">
@@ -230,7 +287,7 @@ import { ref, computed } from 'vue';
 const currentPool = ref('goat'); // 'goat' | 'workbuddy'
 const searchQuery = ref('');
 const selectedCategory = ref('全部');
-const sortKey = ref('inPrice');
+const sortKey = ref('tier'); // 默认梯队优先排序 (T0 -> T1 -> T2 -> T3)
 const sortAsc = ref(true);
 const isDiscountMode = ref(true); // 默认开启实付展示
 const toastMsg = ref('');
@@ -244,8 +301,8 @@ const currentCategories = computed(() => {
 
 const searchPlaceholder = computed(() => {
   return currentPool.value === 'goat'
-    ? '搜索短别名 / 上游模型 ID / 梯队 (T1/T2/T3) / 说明...'
-    : '搜索模型名称 / 节点别名 (amd/tyy) / 厂商 / 特性...';
+    ? '搜索短别名 / 上游模型 ID / 梯队 (T0/T1/T2/T3) / 说明...'
+    : '搜索模型名称 / 节点别名 (amd/tyy) / 梯队 (T0/T1/T2/T3) / 特性...';
 });
 
 function switchPool(pool) {
@@ -263,9 +320,9 @@ const goatRawModels = [
   { short: "glm-5.3-flash", id: "z-ai/glm-5.3-flash", vendor: "GLM", tier: "T1", inPrice: 0.10, outPrice: 0.40, desc: "智谱极速高性价比 1M 上下文推理" },
   { short: "minimax", id: "minimax/minimax-m3.1-flash", vendor: "MiniMax", tier: "T2", inPrice: 0.10, outPrice: 0.40, desc: "稀宇科技原生多模态，可调思考深度" },
   { short: "mimo", id: "xiaomi/mimo-v2.6-flash", vendor: "Xiaomi", tier: "T2", inPrice: 0.12, outPrice: 0.50, desc: "小米 1M 上下文轻量高效代码模型" },
-  { short: "deepseek-chat", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "V4.1 混合注意力超快推理，98% 缓存命中，日常主力首选" },
-  { short: "deepseek-v4.1", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek V4.1 极速版" },
-  { short: "dsv4f", id: "deepseek/deepseek-v4-flash-fast", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek 极速高吞吐响应模式" },
+  { short: "deepseek-chat", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T0", inPrice: 0.15, outPrice: 0.60, desc: "V4.1 混合注意力超快推理，98% 缓存命中，日常主力首选 [T0 顶流神卡]" },
+  { short: "deepseek-v4.1", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T0", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek V4.1 极速版，高吞吐代码生成 [T0 顶流神卡]" },
+  { short: "dsv4f", id: "deepseek/deepseek-v4-flash-fast", vendor: "DeepSeek", tier: "T0", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek 极速高吞吐响应模式 [T0 顶流神卡]" },
   { short: "qwen-plus", id: "Qwen/Qwen3.7-Plus", vendor: "Qwen", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "兼顾性能与成本的通义平衡版（8x 额度补贴）" },
   { short: "gemini-flash", id: "google/gemini-3.8-flash", vendor: "其它", tier: "T3", inPrice: 0.15, outPrice: 0.60, desc: "无官方专有缓存加速，极易烧光 5 小时配额，网关已实施拦截保护" },
   { short: "dsv4fve", id: "deepseek/deepseek-v4-flash-vision-exp", vendor: "DeepSeek", tier: "T1", inPrice: 0.28, outPrice: 0.60, desc: "DeepSeek 多模态视觉解析增强" },
@@ -274,9 +331,9 @@ const goatRawModels = [
   { short: "minimax-m3", id: "MiniMaxAI/MiniMax-M3", vendor: "MiniMax", tier: "T2", inPrice: 0.40, outPrice: 1.20, desc: "稀宇旗舰多模态 Agent" },
   { short: "mimo-pro", id: "xiaomi/mimo-v2.6-pro", vendor: "Xiaomi", tier: "T2", inPrice: 0.50, outPrice: 2.00, desc: "小米旗舰级多模态代码分析" },
   { short: "kimi-k2.5", id: "moonshotai/Kimi-K2.5", vendor: "Kimi", tier: "T2", inPrice: 0.60, outPrice: 3.00, desc: "月之暗面前端全栈编码与多模态" },
-  { short: "deepseek-reasoner", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0.66, outPrice: 1.98, desc: "满血思维链深度推理模型，架构设计与疑难排查首选" },
-  { short: "deepseek-v4", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0.66, outPrice: 1.98, desc: "旗舰架构代码与 Agent" },
-  { short: "glm-5.2", id: "zai-org/GLM-5.2", vendor: "GLM", tier: "T1", inPrice: 0.80, outPrice: 2.50, desc: "官方白皮书点名享满额 $70 信用补贴，工程代码极其稳定" },
+  { short: "deepseek-reasoner", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0.66, outPrice: 1.98, desc: "满血思维链深度推理模型，架构设计与疑难排查首选 [T0 顶流神卡]" },
+  { short: "deepseek-v4", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0.66, outPrice: 1.98, desc: "旗舰架构代码与 Agent 满血思考 [T0 顶流神卡]" },
+  { short: "glm-5.2", id: "zai-org/GLM-5.2", vendor: "GLM", tier: "T0", inPrice: 0.80, outPrice: 2.50, desc: "官方白皮书点名享满额 $70 信用补贴，工程代码极其稳定 [T0 顶流神卡]" },
   { short: "kimi-k2.6", id: "moonshotai/Kimi-K2.6", vendor: "Kimi", tier: "T2", inPrice: 0.80, outPrice: 3.50, desc: "Kimi 长程 Agent 编程模型" },
   { short: "step-5", id: "stepfun/Step-5-Preview", vendor: "其它", tier: "T2", inPrice: 0.80, outPrice: 2.40, desc: "阶跃星辰 600B 稀疏 MoE 架构" },
   { short: "kimi-k2.7", id: "moonshotai/Kimi-K2.7-Code", vendor: "Kimi", tier: "T2", inPrice: 0.95, outPrice: 4.00, desc: "Kimi 代码与 Agent 架构专精" },
@@ -309,33 +366,35 @@ const goatRawModels = [
   { short: "gpt-4o-mini", id: "openai/gpt-4o-mini-compatible", vendor: "其它", tier: "T2", inPrice: 0.15, outPrice: 0.60, desc: "多模态轻量级极速日常推理" }
 ].map((m, idx) => ({
   ...m,
+  rawIndex: idx,
   uid: `goat__${m.short || 'none'}__${m.id}__${idx}`
 }));
 
 // 2. WorkBuddy 双活池 20 款模型清单
 const wbRawModels = [
-  { short: "deepseek-v4-pro", id: "deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "旗舰满血推理模型，自动在学校 AMD 与天翼云双节点 50:50 轮询负载均衡" },
-  { short: "amd/deepseek-v4-pro", id: "amd/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, node: "amd", desc: "强制指定路由至学校 AMD 机器节点 (0ms 内网环回极速响应)" },
-  { short: "tyy/deepseek-v4-pro", id: "tyy/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, node: "tyy", desc: "强制指定路由至天翼云电信专网节点 (50ms 异地加密专网灾备)" },
-  { short: "deepseek-v4.1", id: "deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "DeepSeek V4.1 极速版，混合注意力机制，超快首字与高吞吐代码生成" },
-  { short: "deepseek-v3", id: "deepseek-v3", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "DeepSeek V3 经典版本别名，网关无缝映射至 V4 Pro 后端服务" },
-  { short: "deepseek-chat", id: "deepseek-chat", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "DeepSeek Chat 官方标准别名，直通双活后端满血服务" },
-  { short: "ds-v4-pro-std", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "带厂商前缀的标准格式 ID，全面兼容各类自动化智能体与 CLI" },
-  { short: "ds-v4.1-flash-std", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0, outPrice: 0, desc: "带厂商前缀的标准格式 ID 极速版" },
+  { short: "deepseek-v4-pro", id: "deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, desc: "旗舰满血推理模型，自动在学校 AMD 与天翼云双节点 50:50 轮询负载均衡 [T0 顶流神卡]" },
+  { short: "amd/deepseek-v4-pro", id: "amd/deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, node: "amd", desc: "强制指定路由至学校 AMD 机器节点 (0ms 内网环回极速响应) [T0 顶流神卡]" },
+  { short: "tyy/deepseek-v4-pro", id: "tyy/deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, node: "tyy", desc: "强制指定路由至天翼云电信专网节点 (50ms 异地加密专网灾备) [T0 顶流神卡]" },
+  { short: "deepseek-v4.1", id: "deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, desc: "DeepSeek V4.1 极速版，混合注意力机制，超快首字与高吞吐代码生成 [T0 顶流神卡]" },
+  { short: "deepseek-v3", id: "deepseek-v3", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, desc: "DeepSeek V3 经典版本别名，网关无缝映射至 V4 Pro 后端服务 [T0 顶流神卡]" },
+  { short: "deepseek-chat", id: "deepseek-chat", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, desc: "DeepSeek Chat 官方标准别名，直通双活后端满血服务 [T0 顶流神卡]" },
+  { short: "ds-v4-pro-std", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, desc: "带厂商前缀的标准格式 ID，全面兼容各类自动化智能体与 CLI [T0 顶流神卡]" },
+  { short: "ds-v4.1-flash-std", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T0", inPrice: 0, outPrice: 0, desc: "带厂商前缀的标准格式 ID 极速版 [T0 顶流神卡]" },
   { short: "glm-5.3", id: "glm-5.3", vendor: "GLM", tier: "T1", inPrice: 0, outPrice: 0, desc: "智谱前沿自主智能体能力旗舰，长程规划、复杂工具调用与代码重构表现出色" },
   { short: "glm-5.3-flash", id: "glm-5.3-flash", vendor: "GLM", tier: "T1", inPrice: 0, outPrice: 0, desc: "智谱极速高性价比 1M 超长上下文推理模型，日常高频编码首选" },
   { short: "glm-5.2", id: "glm-5.2", vendor: "GLM", tier: "T1", inPrice: 0, outPrice: 0, desc: "智谱经典工程代码旗舰，逻辑扎实、输出极其稳定可靠" },
-  { short: "kimi-k3.1-pro", id: "kimi-k3.1-pro", vendor: "Kimi", tier: "T1", inPrice: 0, outPrice: 0, desc: "月之暗面 Kimi 3.1 Pro 旗舰，带满血长思维链思考推理 (Reasoning Tokens)" },
-  { short: "kimi-k3-1", id: "kimi-k3-1", vendor: "Kimi", tier: "T1", inPrice: 0, outPrice: 0, desc: "Kimi K3.1 兼容格式短别名" },
+  { short: "kimi-k3.1-pro", id: "kimi-k3.1-pro", vendor: "Kimi", tier: "T0", inPrice: 0, outPrice: 0, desc: "月之暗面 Kimi 3.1 Pro 旗舰，带满血长思维链思考推理 (Reasoning Tokens) [T0 顶流神卡]" },
+  { short: "kimi-k3-1", id: "kimi-k3-1", vendor: "Kimi", tier: "T0", inPrice: 0, outPrice: 0, desc: "Kimi K3.1 兼容格式短别名 [T0 顶流神卡]" },
   { short: "kimi-k2.8", id: "kimi-k2.8-preview", vendor: "Kimi", tier: "T1", inPrice: 0, outPrice: 0, desc: "Kimi K2.8 预览版长上下文工作模型" },
   { short: "hy4std", id: "hy4std", vendor: "混元", tier: "T1", inPrice: 0, outPrice: 0, desc: "腾讯混元大模型 4.0 标准版 (Tencent Hunyuan 4 Standard)" },
   { short: "hy4flash", id: "hy4flash", vendor: "混元", tier: "T1", inPrice: 0, outPrice: 0, desc: "腾讯混元大模型 4.0 极速版 (Tencent Hunyuan 4 Flash)" },
   { short: "minimax-flash", id: "minimax-m3.1-flash", vendor: "MiniMax", tier: "T2", inPrice: 0, outPrice: 0, desc: "MiniMax 原生多模态 M3.1 极速版，可控思考深度" },
   { short: "step-5", id: "step-5-preview", vendor: "StepFun", tier: "T2", inPrice: 0, outPrice: 0, desc: "阶跃星辰 Step-5 稀疏 MoE 架构长文本模型" },
   { short: "mimo-pro", id: "mimo-v2.6-pro", vendor: "Xiaomi", tier: "T2", inPrice: 0, outPrice: 0, desc: "小米旗舰级多模态代码分析模型，长程上下文架构理解扎实" },
-  { short: "space-bunny", id: "space-bunny", vendor: "其它", tier: "T2", inPrice: 0, outPrice: 0, desc: "腾讯独家专属实验模型 (Space Bunny)，趣味对话与轻量推理" }
+  { short: "space-bunny", id: "space-bunny", vendor: "其它", tier: "T3", inPrice: 0, outPrice: 0, desc: "腾讯独家专属实验模型 (Space Bunny)，趣味对话与轻量试玩 [T3 实验试玩]" }
 ].map((m, idx) => ({
   ...m,
+  rawIndex: idx,
   uid: `wb__${m.short || 'none'}__${m.id}__${idx}`
 }));
 
@@ -343,6 +402,7 @@ const currentRawModels = computed(() => {
   return currentPool.value === 'goat' ? goatRawModels : wbRawModels;
 });
 
+const t0Count = computed(() => currentRawModels.value.filter(m => m.tier === 'T0').length);
 const t1Count = computed(() => currentRawModels.value.filter(m => m.tier === 'T1').length);
 const blockedCount = computed(() => currentRawModels.value.filter(m => m.tier === 'T3').length);
 
@@ -352,25 +412,32 @@ function getCategoryCount(cat) {
 }
 
 function getTierLabel(tier) {
+  if (tier === 'T0') return '👑 T0 顶流';
   if (tier === 'T1') return '🔥 T1 强推';
   if (tier === 'T2') return '⚡ T2 优质';
+  if (currentPool.value === 'workbuddy') return '🧪 T3 试玩';
   return '🚫 已拦截';
 }
 
 function getTierClass(tier) {
+  if (tier === 'T0') return 'tier-t0';
   if (tier === 'T1') return 'tier-t1';
   if (tier === 'T2') return 'tier-t2';
+  if (currentPool.value === 'workbuddy') return 'tier-t3-wb';
   return 'tier-t3';
 }
 
 function getTierTooltip(tier) {
   if (currentPool.value === 'workbuddy') {
-    if (tier === 'T1') return 'WorkBuddy 核心旗舰：国内顶级模型，全场免费畅享！';
-    return 'WorkBuddy 优质次旗舰模型。';
+    if (tier === 'T0') return 'T0 顶流神卡：满血 671B 深度思考 / Kimi 3.1 Pro 旗舰，自建双活核心王牌！';
+    if (tier === 'T1') return 'T1 黄金主力：国产顶级前沿梯队，高可用双节点负载均衡，日常主力首选！';
+    if (tier === 'T2') return 'T2 优质精选：多模态、长文本与垂类专精模型。';
+    return 'T3 实验试玩：腾讯独家实验模型，趣味对话与轻量尝鲜。';
   }
-  if (tier === 'T1') return 'T1 黄金梯队：享 GOAT Plan 8x 信用与 95%+ 缓存命中，闭眼写代码！';
+  if (tier === 'T0') return 'T0 顶流神卡：享 8x 信用与 98% 专有缓存加速，编程/推理/架构绝对主力，闭眼冲！';
+  if (tier === 'T1') return 'T1 黄金主力：官方共建 8x 补贴与 95%+ 缓存命中，高产稳健！';
   if (tier === 'T2') return 'T2 白银梯队：国产优质次旗舰，适合特定任务微调。';
-  return 'T3 避坑模型：无官方缓存加速，易烧干 5 小时配额，网关已开启拦截保护。';
+  return 'T3 避坑模型：无专有缓存加速，易烧干 5 小时配额，网关已开启拦截保护。';
 }
 
 function formatPrice(item, isOut = false) {
@@ -378,7 +445,7 @@ function formatPrice(item, isOut = false) {
   const basePrice = isOut ? item.outPrice : item.inPrice;
   if (!isDiscountMode.value) return basePrice.toFixed(basePrice < 0.01 ? 4 : 3);
   
-  // T1 享 8x 信用 (10/80 = 0.125 实付)
+  // T0/T1 享 8x 信用 (10/80 = 0.125 实付)
   // T2 享 2x 信用 (10/20 = 0.5 实付)
   // T3 标价原样显示或提示
   let discount = 0.125;
@@ -422,18 +489,59 @@ const filteredModels = computed(() => {
     );
   }
 
+  const tierWeights = { 'T0': 0, 'T1': 1, 'T2': 2, 'T3': 3 };
+
   list.sort((a, b) => {
     let result = 0;
-    if (sortKey.value === 'short') {
+    if (sortKey.value === 'tier') {
+      // 1. 优先梯队排序 (T0 -> T1 -> T2 -> T3)
+      const tierA = tierWeights[a.tier] ?? 99;
+      const tierB = tierWeights[b.tier] ?? 99;
+      result = tierA - tierB;
+      if (result === 0) {
+        // 2. 梯队相同，按输入价格
+        result = a.inPrice - b.inPrice;
+        if (result === 0) {
+          // 3. 价格相同，按输出价格
+          result = a.outPrice - b.outPrice;
+          if (result === 0) {
+            // 4. 价格相同，按模型名称首字母 A-Z
+            const aName = a.short || a.id;
+            const bName = b.short || b.id;
+            result = aName.localeCompare(bName);
+          }
+        }
+      }
+    } else if (sortKey.value === 'inPrice') {
+      result = a.inPrice - b.inPrice;
+      if (result === 0) {
+        result = a.outPrice - b.outPrice;
+        if (result === 0) {
+          result = (tierWeights[a.tier] ?? 99) - (tierWeights[b.tier] ?? 99);
+        }
+      }
+    } else if (sortKey.value === 'outPrice') {
+      result = a.outPrice - b.outPrice;
+      if (result === 0) {
+        result = a.inPrice - b.inPrice;
+        if (result === 0) {
+          result = (tierWeights[a.tier] ?? 99) - (tierWeights[b.tier] ?? 99);
+        }
+      }
+    } else if (sortKey.value === 'short') {
       const aVal = a.short || 'zzz';
       const bVal = b.short || 'zzz';
       result = aVal.localeCompare(bVal);
+      if (result === 0) {
+        result = (tierWeights[a.tier] ?? 99) - (tierWeights[b.tier] ?? 99);
+      }
     } else if (sortKey.value === 'id') {
       result = a.id.localeCompare(b.id);
-    } else if (sortKey.value === 'inPrice') {
-      result = a.inPrice - b.inPrice;
-    } else if (sortKey.value === 'outPrice') {
-      result = a.outPrice - b.outPrice;
+      if (result === 0) {
+        result = (tierWeights[a.tier] ?? 99) - (tierWeights[b.tier] ?? 99);
+      }
+    } else if (sortKey.value === 'index') {
+      result = a.rawIndex - b.rawIndex;
     }
     return sortAsc.value ? result : -result;
   });
@@ -863,6 +971,14 @@ th.sortable.active .sort-icon {
   white-space: nowrap;
 }
 
+.tier-t0 {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.18);
+  font-weight: 700;
+}
+
 .tier-t1 {
   background: rgba(244, 63, 94, 0.15);
   color: #fb7185;
@@ -879,6 +995,20 @@ th.sortable.active .sort-icon {
   background: rgba(107, 114, 128, 0.2);
   color: #9ca3af;
   border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.tier-t3-wb {
+  background: rgba(168, 85, 247, 0.16);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.row-t0 {
+  background: rgba(245, 158, 11, 0.025);
+}
+
+.row-t0:hover {
+  background: rgba(245, 158, 11, 0.06) !important;
 }
 
 .code-pill {
@@ -1026,5 +1156,91 @@ th.sortable.active .sort-icon {
   padding: 3rem;
   text-align: center;
   color: var(--sl-color-gray-3);
+}
+
+/* 底部排序规则说明与叠甲声明 */
+.table-footer-legend {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--sl-color-gray-5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-family: var(--sl-font);
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend-icon {
+  font-size: 0.95rem;
+}
+
+.legend-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--sl-color-gray-2);
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.65rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.77rem;
+  line-height: 1.5;
+  color: var(--sl-color-gray-3);
+}
+
+.legend-tag {
+  flex-shrink: 0;
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  background: var(--sl-color-gray-5);
+  color: var(--sl-color-gray-1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.legend-desc strong {
+  color: var(--sl-color-gray-2);
+}
+
+.disclaimer-row {
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.disclaimer-badge {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.disclaimer-text {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--sl-color-gray-3);
+  letter-spacing: 0.01em;
 }
 </style>
