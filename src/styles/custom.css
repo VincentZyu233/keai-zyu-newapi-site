@@ -36,8 +36,14 @@ pre, code, kbd {
   font-feature-settings: "calt" 1, "zero" 1;
 }
 
-/* 页面主体字体提升 */
-body, h1, h2, h3, h4, p, a, span, button, input {
+/* 全局页面主体、表单、表格字体优化 */
+html,
+body,
+h1, h2, h3, h4, h5, h6,
+p, a, span, strong, em, b, i,
+button, input, textarea, select, label,
+table, thead, tbody, tfoot, tr, th, td,
+ul, ol, li, dl, dt, dd, blockquote {
   font-family: var(--sl-font);
 }
 

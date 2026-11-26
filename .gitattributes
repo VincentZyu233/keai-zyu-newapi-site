@@ -1,0 +1,4 @@
+# 强制将所有 Markdown 与 MDX 文件（包括 README）纳入 GitHub 语言统计 (GitHub Linguist)
+*.md linguist-detectable=true linguist-documentation=false
+*.mdx linguist-detectable=true linguist-documentation=false
+README.md linguist-detectable=true linguist-documentation=false

@@ -93,8 +93,8 @@
       <table class="model-table">
         <thead>
           <tr>
-            <th class="th-index">#</th>
-            <th class="th-tier">梯队评级</th>
+            <th class="th-index"><span>#</span></th>
+            <th class="th-tier"><span>梯队评级</span></th>
             <th
               class="th-short sortable"
               :class="{ active: sortKey === 'short' }"
@@ -141,7 +141,7 @@
                 <span class="sort-icon">{{ getSortIndicator('outPrice') }}</span>
               </div>
             </th>
-            <th class="th-desc">特性与说明</th>
+            <th class="th-desc"><span>特性与说明</span></th>
           </tr>
         </thead>
         <tbody>
@@ -202,7 +202,7 @@
             <td class="td-desc">
               <span v-if="item.tier === 'T3'" class="desc-blocked-tag">[已拦截保护]</span>
               <span v-if="item.node" class="node-tag" :class="item.node">{{ item.node === 'amd' ? 'AMD 节点' : '天翼云节点' }}</span>
-              {{ item.desc }}
+              <span class="desc-text">{{ item.desc }}</span>
             </td>
           </tr>
         </tbody>
@@ -462,7 +462,7 @@ function copyText(text, label) {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  font-family: var(--sl-font-system, system-ui, -apple-system, sans-serif);
+  font-family: var(--sl-font);
 }
 
 /* 顶部号池切换 Tab */
@@ -769,6 +769,7 @@ input:checked + .slider:before {
   border-collapse: collapse;
   text-align: left;
   font-size: 0.88rem;
+  font-family: var(--sl-font);
 }
 
 .model-table th {
@@ -778,6 +779,7 @@ input:checked + .slider:before {
   color: var(--sl-color-white);
   border-bottom: 1px solid var(--sl-color-gray-5);
   white-space: nowrap;
+  font-family: var(--sl-font);
 }
 
 .model-table th.sortable {
@@ -810,6 +812,7 @@ input:checked + .slider:before {
   font-size: 0.7rem;
   color: var(--sl-color-gray-4);
   font-weight: normal;
+  font-family: var(--sl-font);
 }
 
 .sort-icon {
@@ -825,6 +828,7 @@ th.sortable.active .sort-icon {
   padding: 0.75rem 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   vertical-align: middle;
+  font-family: var(--sl-font);
 }
 
 .model-row {
@@ -846,7 +850,8 @@ th.sortable.active .sort-icon {
 
 .td-index {
   color: var(--sl-color-gray-4);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-family: var(--sl-font-mono);
   width: 32px;
 }
 
@@ -942,14 +947,22 @@ th.sortable.active .sort-icon {
 
 .td-desc {
   color: var(--sl-color-gray-2);
-  font-size: 0.84rem;
-  line-height: 1.4;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  font-family: var(--sl-font);
+}
+
+.desc-text {
+  font-family: var(--sl-font);
+  letter-spacing: 0.012em;
+  color: var(--sl-color-gray-1);
 }
 
 .desc-blocked-tag {
   color: #ef4444;
   font-weight: 600;
-  margin-right: 0.3rem;
+  margin-right: 0.35rem;
+  font-family: var(--sl-font);
 }
 
 .node-tag {
@@ -958,6 +971,7 @@ th.sortable.active .sort-icon {
   border-radius: 4px;
   font-weight: 600;
   margin-right: 0.4rem;
+  font-family: var(--sl-font);
 }
 
 .node-tag.amd {
