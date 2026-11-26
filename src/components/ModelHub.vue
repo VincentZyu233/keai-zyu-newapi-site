@@ -969,6 +969,7 @@ th.sortable.active .sort-icon {
   border-radius: 4px;
   font-weight: 600;
   white-space: nowrap;
+  font-family: var(--sl-font);
 }
 
 .tier-t0 {
@@ -1168,13 +1169,18 @@ th.sortable.active .sort-icon {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  font-family: var(--sl-font);
+  font-family: var(--sl-font) !important;
+}
+
+.table-footer-legend * {
+  font-family: var(--sl-font) !important;
 }
 
 .legend-header {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  font-family: var(--sl-font) !important;
 }
 
 .legend-icon {
@@ -1185,6 +1191,7 @@ th.sortable.active .sort-icon {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--sl-color-gray-2);
+  font-family: var(--sl-font) !important;
 }
 
 .legend-grid {
@@ -1200,20 +1207,29 @@ th.sortable.active .sort-icon {
   font-size: 0.77rem;
   line-height: 1.5;
   color: var(--sl-color-gray-3);
+  font-family: var(--sl-font) !important;
 }
 
 .legend-tag {
   flex-shrink: 0;
-  font-family: var(--sl-font-mono);
-  font-size: 0.72rem;
+  font-family: var(--sl-font) !important;
+  font-size: 0.74rem;
+  font-weight: 600;
   background: var(--sl-color-gray-5);
   color: var(--sl-color-gray-1);
-  padding: 0.1rem 0.4rem;
+  padding: 0.12rem 0.45rem;
   border-radius: 4px;
 }
 
+.legend-desc {
+  font-family: var(--sl-font) !important;
+  color: var(--sl-color-gray-3);
+}
+
 .legend-desc strong {
-  color: var(--sl-color-gray-2);
+  font-family: var(--sl-font) !important;
+  font-weight: 600;
+  color: var(--sl-color-white);
 }
 
 .disclaimer-row {
@@ -1223,6 +1239,7 @@ th.sortable.active .sort-icon {
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
+  font-family: var(--sl-font) !important;
 }
 
 .disclaimer-badge {
@@ -1231,16 +1248,18 @@ th.sortable.active .sort-icon {
   font-weight: 600;
   background: rgba(245, 158, 11, 0.15);
   color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(245, 158, 11, 0.35);
   padding: 0.12rem 0.45rem;
   border-radius: 4px;
   white-space: nowrap;
+  font-family: var(--sl-font) !important;
 }
 
 .disclaimer-text {
-  font-size: 0.75rem;
-  line-height: 1.55;
+  font-size: 0.76rem;
+  line-height: 1.6;
   color: var(--sl-color-gray-3);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.015em;
+  font-family: var(--sl-font) !important;
 }
 </style>

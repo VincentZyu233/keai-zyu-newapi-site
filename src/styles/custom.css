@@ -47,6 +47,15 @@ ul, ol, li, dl, dt, dd, blockquote {
   font-family: var(--sl-font);
 }
 
+/* 开启字体合成并保证重点与加粗文字始终沿用文楷 */
+:root {
+  font-synthesis: weight style;
+}
+
+strong, b, th {
+  font-family: var(--sl-font) !important;
+}
+
 /* 导航头像微动效与标题排版 */
 .site-title {
   white-space: nowrap;
