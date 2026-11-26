@@ -83,12 +83,12 @@
     <!-- 状态统计栏 -->
     <div class="status-bar">
       <span v-if="currentPool === 'goat'">
-        已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款模型（包含 <strong>{{ t0Count }}</strong> 款 👑 T0 顶流神卡，<strong>{{ t1Count }}</strong> 款 🔥 T1 黄金主力，<strong>{{ t2Count }}</strong> 款 ⚡ T2 优质精选）
+        已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款模型（包含 <strong>{{ t0Count }}</strong> 款 👑 T0 顶流神卡，<strong>{{ t1Count }}</strong> 款 🔥 T1 黄金主力，<strong>{{ t2Count }}</strong> 款 ⚡ T2 优质精选，<strong>{{ blockedCount }}</strong> 款 🚫 T3 拦截保护）
       </span>
       <span v-else>
         已筛选匹配 <strong>{{ filteredModels.length }}</strong> 款 WorkBuddy 双活模型（包含 <strong>{{ t0Count }}</strong> 款 👑 T0 顶流神卡，<strong>{{ t1Count }}</strong> 款 🔥 T1 强推主力，全场 100% 免费）
       </span>
-      <span v-if="currentPool === 'goat'" class="sort-tip">💡 GOAT 渠道严选 CommandCode 国产合作基座，全线享 8x 补贴与 95%+ 缓存，无 T3 高耗避坑模型</span>
+      <span v-if="currentPool === 'goat'" class="sort-tip">💡 T0/T1 享 8x 补贴与 95%+ 缓存；🚫 T3 高消耗模型已开启网关拦截保护</span>
       <span v-else class="sort-tip">💡 支持 amd/ 和 tyy/ 前缀直接指定单一物理节点，通用模型名走 50:50 自动轮询</span>
     </div>
 
@@ -224,7 +224,7 @@
               </template>
             </td>
             <td class="td-desc">
-              <span v-if="item.tier === 'T3'" class="desc-blocked-tag">[已拦截保护]</span>
+              <span v-if="item.tier === 'T3'" class="desc-blocked-tag">[T3 拦截保护]</span>
               <span v-if="item.node" class="node-tag" :class="item.node">{{ item.node === 'amd' ? 'AMD 节点' : '天翼云节点' }}</span>
               <span class="desc-text">{{ item.desc }}</span>
             </td>
@@ -262,11 +262,11 @@
           <span class="legend-desc"><strong>恢复官方默认推荐矩阵顺序</strong>，按平台核心推荐优先级展示。</span>
         </div>
       </div>
-      <!-- 叠甲声明 -->
+      <!-- 叠甲声明与 10x 说明 -->
       <div class="disclaimer-row">
-        <span class="disclaimer-badge">🛡️ 叠甲声明</span>
+        <span class="disclaimer-badge">🛡️ 叠甲与说明</span>
         <span class="disclaimer-text">
-          上述模型梯队分级（T0 ~ T3）综合搜集参考自互联网公开基准评测、各厂商官方技术白皮书、社区 Coding Agent（Codex / Claude Code / Cursor）实测吞吐与缓存命中表现，可能带有一定主观倾向与时效性差异，仅供选型与避坑参考，不代表绝对官方权威排名，具体体验请以实际业务与请求实测为准。
+          上述模型梯队分级（T0 ~ T3）综合搜集参考自公开评测与社区实测，仅供选型与避坑参考。注：上游 CommandCode 宣传的 8x / 10x 补贴额度（充 $10 得最高 $80~$100 额度）属于基于专有缓存命中 95%+ 抵扣折算的营销机制噱头，具体原理可参考 <a href="https://commandcode.ai/docs/plans/goat#how-is-10x-possible" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: underline;">CommandCode 官方 10x 说明文档</a>。
         </span>
       </div>
     </div>
@@ -292,7 +292,7 @@ const sortAsc = ref(true);
 const isDiscountMode = ref(true); // 默认开启实付展示
 const toastMsg = ref('');
 
-const goatCategories = ['全部', 'DeepSeek', 'Kimi', 'GLM', 'Qwen', 'MiniMax', 'Xiaomi'];
+const goatCategories = ['全部', 'DeepSeek', 'Kimi', 'GLM', 'Qwen', 'Grok', 'MiniMax', 'Xiaomi', '其它'];
 const wbCategories = ['全部', 'DeepSeek', 'Kimi', 'GLM', '混元', 'MiniMax', 'StepFun', 'Xiaomi', '其它'];
 
 const currentCategories = computed(() => {
@@ -301,7 +301,7 @@ const currentCategories = computed(() => {
 
 const searchPlaceholder = computed(() => {
   return currentPool.value === 'goat'
-    ? '搜索短别名 / 上游模型 ID / 梯队 (T0/T1/T2) / 说明...'
+    ? '搜索短别名 / 上游模型 ID / 梯队 (T0/T1/T2/T3) / 说明...'
     : '搜索模型名称 / 节点别名 (amd/tyy) / 梯队 (T0/T1/T2/T3) / 特性...';
 });
 
@@ -312,37 +312,58 @@ function switchPool(pool) {
   searchQuery.value = '';
 }
 
-// 1. GOAT 渠道 24 款实际可用模型清单（100% 严选合作上游，全享 8x 补贴与专有缓存，无 T3）
+// 1. GOAT 渠道 50 款模型清单（T0 精炼为 3 款，T3 明确标注拦截保护）
 const goatRawModels = [
-  // T0 顶流神卡（精炼 3 款核心基座）
-  { short: "deepseek-v4.1", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T0", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek V4.1 混合注意力超快推理，98% 专有缓存命中，日常主力首选 [T0 顶流神卡]" },
-  { short: "deepseek-v4-pro", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0.66, outPrice: 1.98, desc: "671B 满血思维链深度推理，超难算法推导与架构重构首选 [T0 顶流神卡]" },
-  { short: "glm-5.2", id: "zai-org/GLM-5.2", vendor: "GLM", tier: "T0", inPrice: 0.80, outPrice: 2.50, desc: "官方白皮书点名享满额 $70 信用补贴，工程代码扎实，复杂工具调用首选 [T0 顶流神卡]" },
-
-  // T1 黄金主力（高性价比与高可用，8x 补贴保障）
-  { short: "qwen-flash", id: "Qwen/Qwen3.8-Flash", vendor: "Qwen", tier: "T1", inPrice: 0.03, outPrice: 0.13, desc: "通义千问极速轻量模型，超低延迟与极低推理成本" },
-  { short: "glm-5.3-flash", id: "z-ai/glm-5.3-flash", vendor: "GLM", tier: "T1", inPrice: 0.10, outPrice: 0.40, desc: "智谱极速高性价比 1M 超长上下文推理模型，日常高频编码首选" },
-  { short: "glm-5.3-flashx", id: "z-ai/glm-5.3-flashx", vendor: "GLM", tier: "T1", inPrice: 0.10, outPrice: 0.40, desc: "智谱 1M 上下文极速增强加速分支" },
-  { short: "deepseek-v4-flash", id: "deepseek/deepseek-v4-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek V4 Flash 经典极速推理模型" },
-  { short: "dsv4-fast", id: "deepseek/deepseek-v4-flash-fast", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek V4 极速低延迟高并发推理模式" },
-  { short: "dsv4.1-fast", id: "deepseek/deepseek-v4.1-flash-fast", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek V4.1 极速高吞吐响应模式" },
-  { short: "qwen-plus", id: "Qwen/Qwen3.7-Plus", vendor: "Qwen", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "兼顾性能与成本的通义平衡版（享 8x 额度补贴）" },
-  { short: "dsv4-vision", id: "deepseek/deepseek-v4-flash-vision-exp", vendor: "DeepSeek", tier: "T1", inPrice: 0.28, outPrice: 0.60, desc: "DeepSeek 多模态视觉解析增强实验版" },
-  { short: "qwen-max", id: "Qwen/Qwen3.8-Max", vendor: "Qwen", tier: "T1", inPrice: 0.40, outPrice: 1.60, desc: "通义千问 3.8 Max 满血旗舰版，长程逻辑与自主智能体能力卓越" },
-  { short: "kimi-k2.7", id: "moonshotai/Kimi-K2.7-Code", vendor: "Kimi", tier: "T1", inPrice: 0.95, outPrice: 4.00, desc: "月之暗面代码与 Agent 架构专精模型，编程与工具链配合极佳" },
-  { short: "kimi-k2.7-fast", id: "moonshotai/Kimi-K2.7-Code-Highspeed", vendor: "Kimi", tier: "T1", inPrice: 0.95, outPrice: 4.00, desc: "Kimi K2.7 高速代码响应模式，专为极速生成优化" },
-  { short: "glm-5", id: "zai-org/GLM-5", vendor: "GLM", tier: "T1", inPrice: 1.00, outPrice: 3.00, desc: "智谱多模态深度思考与长程规划基座" },
-  { short: "glm-5.3", id: "zai-org/GLM-5.3", vendor: "GLM", tier: "T1", inPrice: 1.50, outPrice: 4.00, desc: "智谱前沿自主智能体能力旗舰，长程规划与代码重构表现出色" },
-
-  // T2 优质精选（特色垂类与多模态）
-  { short: "minimax-flash", id: "minimax/minimax-m3.1-flash", vendor: "MiniMax", tier: "T2", inPrice: 0.10, outPrice: 0.40, desc: "稀宇科技原生多模态 M3.1 极速版，可调思考深度" },
-  { short: "mimo-flash", id: "xiaomi/mimo-v2.6-flash", vendor: "Xiaomi", tier: "T2", inPrice: 0.12, outPrice: 0.50, desc: "小米 1M 上下文轻量高效代码模型" },
-  { short: "minimax-m2.5", id: "MiniMaxAI/MiniMax-M2.5", vendor: "MiniMax", tier: "T2", inPrice: 0.25, outPrice: 0.80, desc: "稀宇科技高性价比多模态推理模型" },
-  { short: "minimax-m3", id: "MiniMaxAI/MiniMax-M3", vendor: "MiniMax", tier: "T2", inPrice: 0.40, outPrice: 1.20, desc: "稀宇科技旗舰多模态 Agent 深度模型" },
-  { short: "mimo-pro", id: "xiaomi/mimo-v2.6-pro", vendor: "Xiaomi", tier: "T2", inPrice: 0.50, outPrice: 2.00, desc: "小米旗舰级多模态代码分析模型，长程架构理解扎实" },
-  { short: "kimi-k2.5", id: "moonshotai/Kimi-K2.5", vendor: "Kimi", tier: "T2", inPrice: 0.60, outPrice: 3.00, desc: "月之暗面全栈编码与多模态通用模型" },
-  { short: "kimi-k2.6", id: "moonshotai/Kimi-K2.6", vendor: "Kimi", tier: "T2", inPrice: 0.80, outPrice: 3.50, desc: "Kimi 长程 Agent 编程与通用推理模型" },
-  { short: "kimi-k3", id: "moonshotai/Kimi-K3", vendor: "Kimi", tier: "T2", inPrice: 3.00, outPrice: 15.00, desc: "2.8T 大参数、100 万长上下文知识工作旗舰" }
+  { short: "qwen-flash", id: "Qwen/Qwen3.8-Flash", vendor: "Qwen", tier: "T1", inPrice: 0.03, outPrice: 0.13, desc: "通义千问极速轻量模型，超低延迟与极低成本" },
+  { short: "qwen-omni", id: "Qwen/Qwen3.8-Omni-Flash", vendor: "Qwen", tier: "T1", inPrice: 0.05, outPrice: 0.20, desc: "通义多模态音频与视觉理解轻量版" },
+  { short: "qwen-27b", id: "Qwen/Qwen3.8-27B", vendor: "Qwen", tier: "T1", inPrice: 0.08, outPrice: 0.30, desc: "27B 参数紧凑型代码与视觉推理（官方点名满额补贴）" },
+  { short: "glm-5.3-flash", id: "z-ai/glm-5.3-flash", vendor: "GLM", tier: "T1", inPrice: 0.10, outPrice: 0.40, desc: "智谱极速高性价比 1M 上下文推理" },
+  { short: "minimax", id: "minimax/minimax-m3.1-flash", vendor: "MiniMax", tier: "T2", inPrice: 0.10, outPrice: 0.40, desc: "稀宇科技原生多模态，可调思考深度" },
+  { short: "mimo", id: "xiaomi/mimo-v2.6-flash", vendor: "Xiaomi", tier: "T2", inPrice: 0.12, outPrice: 0.50, desc: "小米 1M 上下文轻量高效代码模型" },
+  { short: "deepseek-chat", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "V4.1 混合注意力超快推理，98% 缓存命中，日常主力首选" },
+  { short: "deepseek-v4.1", id: "deepseek/deepseek-v4.1-flash", vendor: "DeepSeek", tier: "T0", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek V4.1 极速版，高吞吐代码生成 [T0 顶流神卡]" },
+  { short: "dsv4f", id: "deepseek/deepseek-v4-flash-fast", vendor: "DeepSeek", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "DeepSeek 极速高吞吐响应模式" },
+  { short: "qwen-plus", id: "Qwen/Qwen3.7-Plus", vendor: "Qwen", tier: "T1", inPrice: 0.15, outPrice: 0.60, desc: "兼顾性能与成本的通义平衡版（8x 额度补贴）" },
+  { short: "gemini-flash", id: "google/gemini-3.8-flash", vendor: "其它", tier: "T3", inPrice: 0.15, outPrice: 0.60, desc: "无官方专有缓存加速，极易烧光 5 小时配额，网关已实施拦截保护 [T3 拦截避坑]" },
+  { short: "dsv4fve", id: "deepseek/deepseek-v4-flash-vision-exp", vendor: "DeepSeek", tier: "T1", inPrice: 0.28, outPrice: 0.60, desc: "DeepSeek 多模态视觉解析增强" },
+  { short: "qwen", id: "Qwen/Qwen3.8-Max", vendor: "Qwen", tier: "T1", inPrice: 0.40, outPrice: 1.60, desc: "通义旗舰级自主长程逻辑与工具调用" },
+  { short: "qwen-max", id: "Qwen/Qwen3.8-Max", vendor: "Qwen", tier: "T1", inPrice: 0.40, outPrice: 1.60, desc: "通义千问 3.8 Max 满血旗舰版" },
+  { short: "minimax-m3", id: "MiniMaxAI/MiniMax-M3", vendor: "MiniMax", tier: "T2", inPrice: 0.40, outPrice: 1.20, desc: "稀宇旗舰多模态 Agent" },
+  { short: "mimo-pro", id: "xiaomi/mimo-v2.6-pro", vendor: "Xiaomi", tier: "T2", inPrice: 0.50, outPrice: 2.00, desc: "小米旗舰级多模态代码分析" },
+  { short: "kimi-k2.5", id: "moonshotai/Kimi-K2.5", vendor: "Kimi", tier: "T2", inPrice: 0.60, outPrice: 3.00, desc: "月之暗面前端全栈编码与多模态" },
+  { short: "deepseek-reasoner", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T1", inPrice: 0.66, outPrice: 1.98, desc: "满血思维链深度推理模型，架构设计与疑难排查" },
+  { short: "deepseek-v4", id: "deepseek/deepseek-v4-pro", vendor: "DeepSeek", tier: "T0", inPrice: 0.66, outPrice: 1.98, desc: "旗舰架构代码与 Agent 满血思考 [T0 顶流神卡]" },
+  { short: "glm-5.2", id: "zai-org/GLM-5.2", vendor: "GLM", tier: "T0", inPrice: 0.80, outPrice: 2.50, desc: "官方白皮书点名享满额 $70 信用补贴，工程代码极其稳定 [T0 顶流神卡]" },
+  { short: "kimi-k2.6", id: "moonshotai/Kimi-K2.6", vendor: "Kimi", tier: "T2", inPrice: 0.80, outPrice: 3.50, desc: "Kimi 长程 Agent 编程模型" },
+  { short: "step-5", id: "stepfun/Step-5-Preview", vendor: "其它", tier: "T2", inPrice: 0.80, outPrice: 2.40, desc: "阶跃星辰 600B 稀疏 MoE 架构" },
+  { short: "kimi-k2.7", id: "moonshotai/Kimi-K2.7-Code", vendor: "Kimi", tier: "T2", inPrice: 0.95, outPrice: 4.00, desc: "Kimi 代码与 Agent 架构专精" },
+  { short: "kimi-k2.7-fast", id: "moonshotai/Kimi-K2.7-Code-Highspeed", vendor: "Kimi", tier: "T2", inPrice: 0.95, outPrice: 4.00, desc: "Kimi 高速代码响应模式" },
+  { short: "glm-5", id: "zai-org/GLM-5", vendor: "GLM", tier: "T1", inPrice: 1.00, outPrice: 3.00, desc: "智谱多模态深度思考与长程规划" },
+  { short: "nemotron-550b", id: "nvidia/nemotron-3-ultra-550b-a55b", vendor: "其它", tier: "T2", inPrice: 1.00, outPrice: 3.00, desc: "英伟达 550B 超大参数自主 Agent" },
+  { short: "glm-5.3", id: "zai-org/GLM-5.3", vendor: "GLM", tier: "T1", inPrice: 1.50, outPrice: 4.00, desc: "智谱前沿自主智能体能力旗舰" },
+  { short: "grok-4.5", id: "xai/grok-4.5", vendor: "Grok", tier: "T3", inPrice: 1.50, outPrice: 5.00, desc: "仅 2x 额度且无官方专有缓存加速，网关已实施拦截保护 [T3 拦截避坑]" },
+  { short: "grok", id: "xai/grok-4.7", vendor: "Grok", tier: "T3", inPrice: 2.00, outPrice: 6.00, desc: "消耗高昂，网关已开启拦截保护 [T3 拦截避坑]" },
+  { short: "grok-4.7", id: "xai/grok-4.7", vendor: "Grok", tier: "T3", inPrice: 2.00, outPrice: 6.00, desc: "Grok 4.7 旗舰款（已开启网关拦截保护） [T3 拦截避坑]" },
+  { short: "mistral-large", id: "mistral/mistral-large-4", vendor: "其它", tier: "T3", inPrice: 2.00, outPrice: 6.00, desc: "欧洲开源旗舰，无 8x 补贴，网关已开启拦截保护 [T3 拦截避坑]" },
+  { short: "kimi", id: "moonshotai/Kimi-K3", vendor: "Kimi", tier: "T2", inPrice: 3.00, outPrice: 15.00, desc: "2.8T 参数、100 万长上下文知识工作" },
+  { short: "kimi-k3", id: "moonshotai/Kimi-K3", vendor: "Kimi", tier: "T2", inPrice: 3.00, outPrice: 15.00, desc: "Kimi K3 超长窗口旗舰" },
+  { short: "llama-70b", id: "meta/llama-3.3-70b-instruct", vendor: "其它", tier: "T2", inPrice: 0.18, outPrice: 0.60, desc: "Meta 开源 Llama 3.3 经典指令微调" },
+  { short: "llama-405b", id: "meta/llama-3.1-405b-instruct", vendor: "其它", tier: "T2", inPrice: 1.50, outPrice: 5.00, desc: "Meta 405B 超大参数稠密开源旗舰" },
+  { short: "command-r-plus", id: "cohere/command-r-plus-08-2024", vendor: "其它", tier: "T2", inPrice: 2.50, outPrice: 10.00, desc: "Cohere 企业级 RAG 与多语言生成" },
+  { short: "yi-lightning", id: "01-ai/yi-lightning", vendor: "其它", tier: "T2", inPrice: 0.14, outPrice: 0.40, desc: "零一万物极速推理与长程对话" },
+  { short: "baichuan-4", id: "baichuan/baichuan-4", vendor: "其它", tier: "T2", inPrice: 0.50, outPrice: 1.50, desc: "百川大模型 4 代企业级知识解析" },
+  { short: "hunyuan", id: "tencent/hunyuan-large", vendor: "其它", tier: "T1", inPrice: 1.00, outPrice: 3.00, desc: "腾讯混元大模型旗舰版（官方点名享满额补贴）" },
+  { short: "sensechat", id: "sensetime/sensechat-5.5", vendor: "其它", tier: "T2", inPrice: 0.60, outPrice: 2.00, desc: "商汤日日新 5.5 大模型" },
+  { short: "qwen-coder-32b", id: "alibaba/qwen-2.5-coder-32b-instruct", vendor: "Qwen", tier: "T1", inPrice: 0.10, outPrice: 0.30, desc: "通义代码专用小钢炮模型" },
+  { short: "qwen-72b", id: "alibaba/qwen-2.5-72b-instruct", vendor: "Qwen", tier: "T1", inPrice: 0.35, outPrice: 1.20, desc: "通义千问 2.5 72B 开源标杆" },
+  { short: "gemma-27b", id: "google/gemma-2-27b-it", vendor: "其它", tier: "T2", inPrice: 0.20, outPrice: 0.60, desc: "谷歌开源轻量紧凑模型" },
+  { short: "phi-4", id: "microsoft/phi-4", vendor: "其它", tier: "T2", inPrice: 0.08, outPrice: 0.25, desc: "微软极紧凑小模型数学与推理专精" },
+  { short: "deepseek-coder", id: "deepseek/deepseek-coder-v2.5", vendor: "DeepSeek", tier: "T1", inPrice: 0.14, outPrice: 0.28, desc: "DeepSeek 经典代码与数学混合推理" },
+  { short: "openchat", id: "openchat/openchat-3.6", vendor: "其它", tier: "T2", inPrice: 0.05, outPrice: 0.15, desc: "轻量开源聊天对话模型" },
+  { short: "hermes-70b", id: "nousresearch/hermes-3-llama-3.1-70b", vendor: "其它", tier: "T2", inPrice: 0.25, outPrice: 0.80, desc: "前沿开源 Agent 与对齐调优" },
+  { short: "solar-pro", id: "upstage/solar-pro", vendor: "其它", tier: "T2", inPrice: 0.30, outPrice: 1.00, desc: "Solar Pro 深度长文本处理" },
+  { short: "claude-3-haiku", id: "anthropic/claude-3-haiku-compatible", vendor: "其它", tier: "T2", inPrice: 0.25, outPrice: 1.25, desc: "轻量快速响应兼容模型" },
+  { short: "gpt-4o-mini", id: "openai/gpt-4o-mini-compatible", vendor: "其它", tier: "T2", inPrice: 0.15, outPrice: 0.60, desc: "多模态轻量级极速日常推理" }
 ].map((m, idx) => ({
   ...m,
   rawIndex: idx,
@@ -391,6 +412,7 @@ const currentRawModels = computed(() => {
 const t0Count = computed(() => currentRawModels.value.filter(m => m.tier === 'T0').length);
 const t1Count = computed(() => currentRawModels.value.filter(m => m.tier === 'T1').length);
 const t2Count = computed(() => currentRawModels.value.filter(m => m.tier === 'T2').length);
+const blockedCount = computed(() => currentRawModels.value.filter(m => m.tier === 'T3').length);
 
 function getCategoryCount(cat) {
   if (cat === '全部') return currentRawModels.value.length;
@@ -402,7 +424,7 @@ function getTierLabel(tier) {
   if (tier === 'T1') return '🔥 T1 强推';
   if (tier === 'T2') return '⚡ T2 优质';
   if (currentPool.value === 'workbuddy') return '🧪 T3 试玩';
-  return '🚫 已拦截';
+  return '🚫 T3 拦截';
 }
 
 function getTierClass(tier) {
@@ -420,10 +442,10 @@ function getTierTooltip(tier) {
     if (tier === 'T2') return 'T2 优质精选：多模态、长文本与垂类专精模型。';
     return 'T3 实验试玩：腾讯独家实验模型，趣味对话与轻量尝鲜。';
   }
-  if (tier === 'T0') return 'T0 顶流神卡：享 8x 信用与 98% 专有缓存加速，编程/推理/架构绝对主力，闭眼冲！';
-  if (tier === 'T1') return 'T1 黄金主力：官方共建 8x 补贴与 95%+ 缓存命中，高产稳健！';
-  if (tier === 'T2') return 'T2 优质精选：国产优质长上下文、多模态与垂类深度模型。';
-  return 'T3 避坑模型：无专有缓存加速。';
+  if (tier === 'T0') return 'T0 顶流神卡：享 8x/10x 信用与 98% 专有缓存加速，编程/推理/架构绝对主力，闭眼冲！';
+  if (tier === 'T1') return 'T1 黄金主力：官方共建 8x/10x 补贴与 95%+ 缓存命中，高产稳健！';
+  if (tier === 'T2') return 'T2 白银梯队：国产优质次旗舰，适合特定任务微调。';
+  return 'T3 避坑模型：无专有缓存加速，极易烧干 5 小时配额，网关已开启拦截保护。';
 }
 
 function formatPrice(item, isOut = false) {
@@ -431,8 +453,12 @@ function formatPrice(item, isOut = false) {
   const basePrice = isOut ? item.outPrice : item.inPrice;
   if (!isDiscountMode.value) return basePrice.toFixed(basePrice < 0.01 ? 4 : 3);
   
-  // GOAT 严选模型全量享受 8x 信用补贴 (实付 1.25 折)
-  const discount = 0.125;
+  // T0/T1 享 8x 信用 (10/80 = 0.125 实付)
+  // T2 享 2x 信用 (10/20 = 0.5 实付)
+  // T3 标价原样显示或提示
+  let discount = 0.125;
+  if (item.tier === 'T2') discount = 0.5;
+  if (item.tier === 'T3') discount = 1.0;
   
   const actual = basePrice * discount;
   if (actual < 0.01) return actual.toFixed(4);

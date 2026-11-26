@@ -1,21 +1,22 @@
 ---
 title: 🏆 GOAT 模型梯队与避坑指南
-description: 深度剖析 Command Code GOAT Plan 的 8x 信用机制、95%+ 缓存命中率与真实网关模型梯队
+description: 深度剖析 Command Code GOAT Plan 的 8x/10x 营销机制、95%+ 缓存命中率与真实网关模型梯队
 ---
 
 欢迎查阅 **VincentZyu 专属 New API 模型梯队与性价比指南**！
 
-在使用 Coding Agent（如 Codex、Claude Code、Cursor、CC Switch）写代码时，许多同学常常遇到一个困惑：**为什么用 DeepSeek / GLM 写代码又快又省、半天额度都不掉，而某些模型写两句就提示 429 或配额耗尽？**
+在使用 Coding Agent（如 Codex、Claude Code、Cursor、CC Switch）写代码时，许多同学常常遇到一个困惑：**为什么用 DeepSeek / GLM 写代码又快又省、半天额度都不掉，而换上 Gemini 写两句就提示 429 限流或额度干崩了？**
 
-本篇文档结合真实数据库配置、官方白皮书与真实网关流量实测，为你彻底揭秘背后的核心原理与梯队划分。
+本篇文档结合中转站真实网关配置与实机评测，为你彻底揭秘背后的核心原理与梯队划分。
 
 ---
 
-## ⚡ 核心机制：GOAT Plan 的 "8x Possible" 是如何实现的？
+## ⚡ 核心机制：GOAT Plan 的 "10x Possible" 到底是什么噱头？
 
-> [!NOTE] 官方白皮书核心要点
+> [!NOTE] 官方白皮书与 10x 营销真相
 > **"Most of a coding agent's volume is cache reads. We run our infrastructure at leading ~95-98% cache hit rates."**  
-> 你支付 $10，之所以能享受高达 $80 的配额，完全依赖于**深度推理工程与超高缓存命中**。
+> Command Code 官方最初打出 8x 宣传，近期更进一步升级为 **"10x Possible"**（宣称支付 $10 可享受高达 $100 配额）。  
+> 详见官方说明文档：👉 [How is 10x possible? (commandcode.ai)](https://commandcode.ai/docs/plans/goat#how-is-10x-possible)
 
 ```
               ┌──────────────────────────────────────────────┐
@@ -29,58 +30,75 @@ description: 深度剖析 Command Code GOAT Plan 的 8x 信用机制、95%+ 缓�
  • 成本几乎降为零，所以 $10 经久耐用！               
 ```
 
-### 为什么选择严选国产合作基座？
-1. **8x Boosted 深度合作款（$70 ~ $80 额度）**：
-   官方直接与模型厂商（智谱、深度求索、通义、月之暗面等）共建了推理基础设施，拥有专属容量保障与高达 **95%~98% 的专有缓存命中加速**，实付相当于全网 **1.25 折**！
-2. **全线严选，天然免疫高耗风险（无 T3 避坑模型）**：
-   在实际的 New-API 网关配置中，**GOAT 渠道严格实行渠道白名单机制，全量 24 款模型均来自 CommandCode 平台深度合作严选国产顶级基准**。
-   网关从源头上**未挂载任何昂贵且无缓存折扣的海外闭源转接渠道**（如 Gemini、Grok、Mistral 等），因此用户在 GOAT 渠道下调用的每一款模型均受到 8x 额度补贴与专有缓存保护，彻底告别误选海外模型导致 5 小时滑动窗口额度瞬间干崩的顾虑！
+### 为什么说 8x/10x 是营销噱头？
+1. **理论极值 vs 真实扣费**：
+   所谓的 "10x Possible" 完全是基于 **超长历史上下文 95%~98% 都是缓存命中** 计算出的数学极限理论值。只有在深度共建集群（DeepSeek、智谱 GLM、通义千问等）上，缓存读取单价降到几分钱，才能实现相当于 1 折（1.25 折）的耐用度。
+2. **离开了缓存加速，噱头秒破灭**：
+   一旦请求没有命中缓存，或者使用了未经官方专有集群加速的模型（如闭源大厂 Gemini、Grok、Mistral），每一次几万至十万 Token 的长上下文都要按标准原价全额计费！单次交互的消耗就相当于国模几十次交互，短短几轮对话就能将 5 小时的滑动窗口额度彻底烧光！
+3. **真实中转站倍率设置**：
+   在 New-API 网关数据库底层，所有模型的 `ModelRatio` 与 `GroupRatio` 统一设为 `1.0` 基准。文档中所标称的输入/输出费率是基于上游官方标杆基准价与实付 1.25 折折算的参考价格。
 
 ---
 
-## 👑 T0 顶流神梯（满血推理 · 极速混合 · 8x 顶级神卡）
+## 👑 T0 顶流神梯（满血推理 · 极速混合 · 8x/10x 顶级神卡）
 
-> [!TIP] 推荐指数：⭐⭐⭐⭐⭐+ | Coding Agent 与复杂工程架构的绝对核心王牌（精炼 3 款核心顶级基座）
-
-| 厂商品牌 | 完整模型 ID / 推荐短名 | 额度倍数 | 缓存命中 | 特性与适用场景 |
-| :--- | :--- | :---: | :---: | :--- |
-| **DeepSeek** | `deepseek/deepseek-v4.1-flash`<br/>`deepseek-v4.1` | **8x ($80)** | **~98%** | **日常 Coding 绝对首选**！混合注意力架构超快首字与高吞吐响应，98% 超高专有缓存命中，写代码如丝般顺滑。 |
-| **DeepSeek** | `deepseek/deepseek-v4-pro`<br/>`deepseek-v4-pro` | **8x ($80)** | **~98%** | **满血深度推理顶流**！671B 满血思维链（Reasoning Tokens），超难算法推导、架构重构与疑难 Bug 绝杀神器。 |
-| **智谱 GLM** | `zai-org/GLM-5.2`<br/>`glm-5.2` | **8x ($70+)** | **~96%** | **工程落地稳定基石**！官方白皮书点名满额 $70 信用补贴，工程代码极其扎实，复杂工具调用与长程规划顶流。 |
-
----
-
-## 🥇 T1 黄金梯队（深度合作 · 8x 满额保障 · 高产稳健）
-
-> [!TIP] 推荐指数：⭐⭐⭐⭐⭐ | 官方共建集群，享满额额度补贴与超高缓存命中，日常主力高频选用
+> [!TIP] 推荐指数：⭐⭐⭐⭐⭐+ | Coding Agent 与复杂工程架构的绝对核心王牌（仅精选 3 款顶级基座）
 
 | 厂商品牌 | 代表模型 ID | 额度倍数 | 缓存命中 | 特性与适用场景 |
 | :--- | :--- | :---: | :---: | :--- |
-| **通义千问** | `Qwen/Qwen3.8-Max`<br/>`Qwen/Qwen3.7-Plus`<br/>`Qwen/Qwen3.8-Flash` | **8x ($70+)** | **~95%** | 阿里开源旗舰家族，工具调用与自主长程逻辑能力一流，兼顾性能与成本。 |
-| **智谱 GLM** | `zai-org/GLM-5.3`<br/>`z-ai/glm-5.3-flash`<br/>`z-ai/glm-5.3-flashx`<br/>`zai-org/GLM-5` | **8x ($70+)** | **~96%** | 智谱前沿自主智能体能力旗舰与 1M 超长上下文轻量极速版，高频交互高性价比首选。 |
-| **DeepSeek** | `deepseek/deepseek-v4-flash`<br/>`deepseek/deepseek-v4-flash-fast`<br/>`deepseek/deepseek-v4.1-flash-fast`<br/>`deepseek/deepseek-v4-flash-vision-exp` | **8x ($80)** | **~98%** | 官方极速响应模式与视觉解析实验版，低延迟多场景覆盖。 |
-| **月之暗面 Kimi** | `moonshotai/Kimi-K2.7-Code`<br/>`moonshotai/Kimi-K2.7-Code-Highspeed` | **8x 补贴** | **良好** | Kimi 专为代码与 Agent 架构打造的专精模型，高速生成模式体验优异。 |
+| **DeepSeek** | `deepseek/deepseek-v4.1-flash`<br/>`deepseek-v4.1` | **10x 算力池** | **~98%** | **日常 Coding 绝对首选**！混合注意力架构超快首字与高吞吐响应，98% 超高专有缓存命中，写代码如丝般顺滑。 |
+| **DeepSeek** | `deepseek/deepseek-v4-pro`<br/>`deepseek-v4` | **10x 算力池** | **~98%** | **满血深度推理顶流**！671B 满血思维链（Reasoning Tokens），超难算法推导、架构重构与疑难 Bug 绝杀神器。 |
+| **智谱 GLM** | `zai-org/GLM-5.2`<br/>`glm-5.2` | **10x 算力池** | **~96%** | **工程落地稳定基石**！官方白皮书点名满额信用补贴，工程代码扎实，复杂工具调用与长程规划顶流。 |
 
 ---
 
-## 🥈 T2 优质精选（超长长文 · 原生多模态 · 垂类专精）
+## 🥇 T1 黄金梯队（深度合作 · 满额保障 · 高产稳健）
 
-> [!TIP] 推荐指数：⭐⭐⭐⭐ | 推理扎实，适合超大知识库检索、多模态分析与专项评测
+> [!TIP] 推荐指数：⭐⭐⭐⭐⭐ | 官方共建集群，享满额补贴与超高缓存命中，日常主力高频选用
 
-| 厂商品牌 | 代表模型 ID | 核心优势 | 适用建议 |
-| :--- | :--- | :--- | :--- |
-| **月之暗面 Kimi** | `moonshotai/Kimi-K3`<br/>`moonshotai/Kimi-K2.6`<br/>`moonshotai/Kimi-K2.5` | 2.8T 超大参数与 100 万长上下文知识工作 | K3 具备顶尖长文分析与全栈代码能力，单次长上下文消耗略高，适合大型复杂文档分析。 |
-| **稀宇 MiniMax** | `minimax/minimax-m3.1-flash`<br/>`MiniMaxAI/MiniMax-M3`<br/>`MiniMaxAI/MiniMax-M2.5` | 原生多模态，支持自主思考深度调节 | 性价比极高，逻辑思维与多模态解析表现均衡。 |
-| **小米 MiMo** | `xiaomi/mimo-v2.6-pro`<br/>`xiaomi/mimo-v2.6-flash` | 1M 上下文轻量高效，多模态代码架构分析 | 代码解析与工程重构能力扎实，响应轻盈。 |
+| 厂商品牌 | 代表模型 ID | 额度特性 | 缓存命中 | 特性与适用场景 |
+| :--- | :--- | :---: | :---: | :--- |
+| **通义千问** | `Qwen/Qwen3.8-Max`<br/>`Qwen/Qwen3.7-Plus`<br/>`Qwen/Qwen3.8-Flash`<br/>`alibaba/qwen-2.5-coder-32b-instruct` | **满额补贴** | **~95%** | 阿里开源旗舰家族，工具调用与自主长程逻辑能力一流，代码专用版综合手感极佳。 |
+| **智谱 GLM** | `zai-org/GLM-5.3`<br/>`z-ai/glm-5.3-flash`<br/>`z-ai/glm-5.3-flashx`<br/>`zai-org/GLM-5` | **满额补贴** | **~96%** | 智谱前沿自主智能体能力旗舰与 1M 上下文轻量极速版，日常高频编码首选。 |
+| **DeepSeek** | `deepseek/deepseek-v4-flash`<br/>`deepseek/deepseek-v4-flash-fast`<br/>`deepseek/deepseek-v4.1-flash-fast`<br/>`deepseek/deepseek-v4-flash-vision-exp` | **满额补贴** | **~98%** | 官方极速响应模式与视觉解析实验版，低延迟多场景覆盖。 |
+| **月之暗面 Kimi** | `moonshotai/Kimi-K2.7-Code`<br/>`moonshotai/Kimi-K2.7-Code-Highspeed` | **优质合作** | **良好** | Kimi 专为代码与 Agent 架构打造的专精模型，极速响应模式体验优异。 |
+| **腾讯混元** | `tencent/hunyuan-large` | **满额补贴** | **~95%** | 腾讯混元大模型旗舰版，享官方满额信用补贴。 |
 
 ---
 
-## 💡 网关倍率与保护机制说明
+## 🥈 T2 白银梯队（国产优质 · 垂类专精备选）
 
-> [!IMPORTANT] 数据库与网关实际设置真相
-> 1. **倍率配置**：在网关内部数据库中，`ModelRatio` 与 `GroupRatio` 统一设为 `1.0` 基准，文档中展示的输入/输出费率是基于 CommandCode 官方基准价与 8x 信用折算的实付参考价格（实付 1.25 折）。
-> 2. **渠道保护与白名单**：GOAT 渠道在网关上游仅配置了严选的 24 款国产合作模型，未配置任何高费率外部海外渠道，从源头上保障了额度安全与极速体验。
-> 3. **自建 WorkBuddy 双活池**：若需要完全免费的内网极速体验，可随时在导航栏切换至 **WorkBuddy 双活池**（AMD + 天翼云异地灾备），全场 100% 免费福利，独立分组不扣除任何拼车余额。
+> [!TIP] 推荐指数：⭐⭐⭐⭐ | 推理强劲，适合特定任务微调与超大长文本检索
+
+| 厂商品牌 | 代表模型 ID | 额度特性 | 适用建议 |
+| :--- | :--- | :---: | :--- |
+| **月之暗面 Kimi** | `moonshotai/Kimi-K3`<br/>`moonshotai/Kimi-K2.6`<br/>`moonshotai/Kimi-K2.5` | 国产优质 | K2.7-Code 专为代码打造；K3 为 2.8T 大参数长文本旗舰（K3 消耗较高，建议轻量按需调用）。 |
+| **稀宇 MiniMax** | `minimax/minimax-m3.1-flash`<br/>`MiniMaxAI/MiniMax-M3`<br/>`MiniMaxAI/MiniMax-M2.5` | 国产优质 | 原生多模态，支持自主思考深度调节，高性价比。 |
+| **小米 MiMo** | `xiaomi/mimo-v2.6-flash`<br/>`xiaomi/mimo-v2.6-pro` | 国产轻量 | 1M 上下文轻量高效，适合中小型代码分析与日常交互。 |
+
+---
+
+## 🚫 T3 避坑红榜（高消耗 · 网关已开启拦截保护）
+
+> [!WARNING] 推荐指数：❌ 极不推荐 | 严禁用于长上下文 Coding Agent
+
+以下模型在 CommandCode / 上游中转体系中属于外部标准接入，**没有专有集群 95%+ 缓存加速**。为了防止在 Codex / Cursor 等工具中误选导致 5 小时配额瞬间被干崩，**网关已开启拦截保护**：
+
+| 被拦截模型 ID | 品牌厂商 | 真实表现 | 为什么被网关拦截保护？ |
+| :--- | :---: | :---: | :--- |
+| **`google/gemini-3.8-flash`** | 谷歌 Google | 仅基础额度 | **重度灾区**！虽然单价看似便宜，但在长上下文下无专有缓存折扣，单次请求消耗数十倍于国模，极易导致配额耗尽 429。 |
+| **`xai/grok-4.7`** | 马斯克 xAI | 仅基础额度 | 旗舰大模型，官方原价高昂，额度消耗极快。 |
+| **`xai/grok-4.5`** | 马斯克 xAI | 仅基础额度 | 长程任务扣费剧烈，易造成滑动窗口配额告警。 |
+| **`mistral/mistral-large-4`** | Mistral | 仅基础额度 | 欧洲开源旗舰，无官方专有集群缓存补贴。 |
+
+---
+
+## 💡 最佳实践建议
+
+1. **写代码日常主力**：一律认准 **`deepseek/deepseek-v4.1-flash`** 或 **`zai-org/GLM-5.2`**。不仅速度飞快、逻辑扎实，且配额消耗几乎可以忽略不计。
+2. **深度推理与架构设计**：选用 **`deepseek/deepseek-v4-pro`**（满血思考链）。
+3. **多模态与超长长文**：选用 **`Qwen/Qwen3.8-Max`** 或 **`zai-org/GLM-5.3`**。
+4. **完全免费福利**：可随时切换至自建的 **WorkBuddy 双活池**（AMD + 天翼云异地灾备），100% 免费不扣除任何拼车余额！
 
 ---
 
